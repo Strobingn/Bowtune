@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Bow Tune</string>
+    <string name="nav_paper_tear">Paper Tear</string>
+    <string name="nav_checklist">Checklist</string>
+    <string name="nav_gear">Gear</string>
+    <string name="nav_sessions">Sessions</string>
+    <string name="nav_guides">Guides</string>
+</resources>
