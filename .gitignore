@@ -1,0 +1,51 @@
+*.iml
+.gradle
+/local.properties
+/.idea/
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+*.apk
+*.ap_
+*.aab
+*.dex
+bin/
+gen/
+out/
+.navigation/
+captures/
+obj/
+*.hprof
+*.log
+.kotlin/
+
+# Android Studio / IntelliJ
+*.ipr
+*.iws
+.idea/workspace.xml
+.idea/libraries/
+.idea/caches/
+.idea/modules.xml
+.idea/navEditor.xml
+.idea/assetWizardSettings.xml
+
+# Built application files
+app/release/
+app/debug/
+app/build/
+
+# Keystore files
+*.jks
+*.keystore
+
+# Google Services (if added later)
+google-services.json
+
+# NDK
+.externalNativeBuild/
+.cxx/
+
+# Gradle wrapper jar is committed; ignore local caches
+!gradle/wrapper/gradle-wrapper.jar

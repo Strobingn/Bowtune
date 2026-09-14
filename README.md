@@ -1,0 +1,57 @@
+# Bow Tune
+
+Android starter app for compound bow tuning: paper-tear diagnosis, a persisted tune checklist, gear/setups, session logs, and brand guides (Mathews Limb Shift, PSE EZ.220, Hoyt XTS, Bowtech DeadLock, Elite S.E.T.).
+
+Built with **Kotlin**, **Jetpack Compose (Material 3)**, **Navigation**, **DataStore**, and **Room**.
+
+## Open & run in Android Studio
+
+1. Install [Android Studio](https://developer.android.com/studio) (Ladybug / recent stable recommended) with Android SDK 35 and JDK 17.
+2. **File → Open** and select this project folder (`Bowtune`).
+3. When prompted, let Android Studio sync Gradle.  
+   - If `gradle/wrapper/gradle-wrapper.jar` is missing, Android Studio / the IDE Gradle sync will generate it from `gradle/wrapper/gradle-wrapper.properties` (Gradle 8.9). You can also run `gradle wrapper` if you have Gradle installed locally.
+4. Copy `local.properties.example` → `local.properties` only if needed. Android Studio normally creates `local.properties` with your `sdk.dir`. **Do not commit `local.properties`** (it can contain machine-specific paths).
+5. Select an emulator or device, then click **Run** on the `app` configuration (`com.strobingn.bowtune`).
+
+Minimum SDK: 26 · Target / compile SDK: 35
+
+## App tabs
+
+| Tab | What it does |
+|-----|----------------|
+| **Paper Tear** | Pick a tear type; see ordered fix steps from `PaperTearGuidance` (distance, grip torque, hardware order). |
+| **Checklist** | Six-phase tune checklist; checked state persisted via DataStore (`ChecklistStore`). |
+| **Gear** | Bow setups in Room (`BowSetupDao`) — brand, rest, limb shift, yoke, cams, notes. |
+| **Sessions** | Tune session log in Room (`TuneSessionDao`) — distance, group, notes. |
+| **Guides** | Mathews Limb Shift, PSE EZ.220, Hoyt XTS, Bowtech DeadLock, Elite S.E.T. |
+
+## Download a debug APK (GitHub Actions)
+
+A workflow builds `assembleDebug` on every push to `main` and on manual runs:
+
+1. Open the repo on GitHub → **Actions**.
+2. Select the **Build Debug APK** workflow.
+3. Open the latest successful run.
+4. Under **Artifacts**, download **bowtune-debug-apk** (retained 30 days).
+5. Unzip the artifact and install the `.apk` on a device (allow install from unknown sources / via `adb install`).
+
+You can also start a build with **Actions → Build Debug APK → Run workflow**.
+
+## Gradle wrapper note
+
+This repo includes `gradlew`, `gradlew.bat`, and `gradle/wrapper/gradle-wrapper.properties`.  
+If `gradle-wrapper.jar` is not present (binary often omitted from text-only pushes), Android Studio will generate it on sync, and the CI workflow downloads it before `./gradlew assembleDebug`.
+
+## Project layout
+
+```
+app/src/main/java/com/strobingn/bowtune/
+  data/           # Room, DataStore, paper-tear guidance, checklist catalog
+  ui/screens/     # papertear, checklist, gear, sessions, guides
+  ui/navigation/  # bottom nav + NavHost
+  ui/theme/       # Material 3 theme
+```
+
+## License / disclaimer
+
+Tuning guidance is educational — always follow your bow manufacturer’s manuals and safe shop practices. Small adjustments, one change at a time, and verify with paper / bare shaft / walk-back before hunting.
