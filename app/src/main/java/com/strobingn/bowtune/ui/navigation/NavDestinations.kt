@@ -29,3 +29,8 @@ object GuideRoutes {
     const val DETAIL = "guides/{guideId}"
     fun detail(guideId: String) = "guides/$guideId"
 }
+
+object SessionRoutes {
+    const val LIST = "sessions"
+    const val LIFT_VERTICAL = "sessions/lift_vertical"
+}

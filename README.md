@@ -22,7 +22,7 @@ Minimum SDK: 26 · Target / compile SDK: 35
 | **Paper Tear** | Pick a tear type; see ordered fix steps from `PaperTearGuidance` (distance, grip torque, hardware order). |
 | **Checklist** | Six-phase tune checklist; checked state persisted via DataStore (`ChecklistStore`). |
 | **Gear** | Bow setups in Room (`BowSetupDao`) — brand, rest, limb shift, yoke, cams, notes. |
-| **Sessions** | Tune session log in Room (`TuneSessionDao`) — distance, group, notes. |
+| **Sessions** | Tune session log in Room (`TuneSessionDao`) — distance, group, notes. **Guided:** Sessions → **LIFT 29.5 — Vertical Tune (90 min)** (Mathews LIFT bare-shaft-high vertical protocol; persists `GuidedTuneSession` + wrap-up summary). |
 | **Guides** | Mathews Limb Shift, PSE EZ.220, Hoyt XTS, Bowtech DeadLock, Elite S.E.T. |
 
 ## Download a debug APK (GitHub Actions)
@@ -42,11 +42,16 @@ You can also start a build with **Actions → Build Debug APK → Run workflow**
 This repo includes `gradlew`, `gradlew.bat`, and `gradle/wrapper/gradle-wrapper.properties`.  
 If `gradle-wrapper.jar` is not present (binary often omitted from text-only pushes), Android Studio will generate it on sync, and the CI workflow downloads it before `./gradlew assembleDebug`.
 
+
+## Guided sessions
+
+- **Sessions → LIFT 29.5 — Vertical Tune (90 min)** — step-through protocol for Mathews LIFT 29.5 prioritizing bare-shaft vertical first (baseline → bare vertical → paper confirm → torque → walk-back → balance → final 30). End screen includes a decision tree and **required** four-number wrap-up (`bareShaftHl20`, `bareShaftLr20`, `walkBackLr30`, `final30GroupSize`). Completing saves a `GuidedTuneSession` and a `TuneSession` summary note with those numbers.
+
 ## Project layout
 
 ```
 app/src/main/java/com/strobingn/bowtune/
-  data/           # Room, DataStore, paper-tear guidance, checklist catalog
+  data/           # Room, DataStore, paper-tear guidance, checklist, LIFT guided plan
   ui/screens/     # papertear, checklist, gear, sessions, guides
   ui/navigation/  # bottom nav + NavHost
   ui/theme/       # Material 3 theme
