@@ -21,6 +21,7 @@ import com.strobingn.bowtune.ui.screens.gear.GearScreen
 import com.strobingn.bowtune.ui.screens.guides.GuideDetailScreen
 import com.strobingn.bowtune.ui.screens.guides.GuidesListScreen
 import com.strobingn.bowtune.ui.screens.papertear.PaperTearScreen
+import com.strobingn.bowtune.ui.screens.sessions.LiftVerticalTuneSessionScreen
 import com.strobingn.bowtune.ui.screens.sessions.SessionsScreen
 
 @Composable
@@ -31,7 +32,8 @@ fun BowTuneBottomBar(navController: NavHostController) {
     NavigationBar {
         TopLevelDestination.all.forEach { dest ->
             val selected = current?.hierarchy?.any { it.route == dest.route } == true ||
-                (dest == TopLevelDestination.Guides && current?.route?.startsWith("guides") == true)
+                (dest == TopLevelDestination.Guides && current?.route?.startsWith("guides") == true) ||
+                (dest == TopLevelDestination.Sessions && current?.route?.startsWith("sessions") == true)
             NavigationBarItem(
                 selected = selected,
                 onClick = {
@@ -69,7 +71,18 @@ fun BowTuneNavHost(
         composable(TopLevelDestination.PaperTear.route) { PaperTearScreen() }
         composable(TopLevelDestination.Checklist.route) { ChecklistScreen() }
         composable(TopLevelDestination.Gear.route) { GearScreen() }
-        composable(TopLevelDestination.Sessions.route) { SessionsScreen() }
+        composable(SessionRoutes.LIST) {
+            SessionsScreen(
+                onOpenLiftVerticalTune = {
+                    navController.navigate(SessionRoutes.LIFT_VERTICAL)
+                }
+            )
+        }
+        composable(SessionRoutes.LIFT_VERTICAL) {
+            LiftVerticalTuneSessionScreen(
+                onBack = { navController.popBackStack() }
+            )
+        }
         composable(GuideRoutes.LIST) {
             GuidesListScreen(
                 onOpenGuide = { id -> navController.navigate(GuideRoutes.detail(id)) }
