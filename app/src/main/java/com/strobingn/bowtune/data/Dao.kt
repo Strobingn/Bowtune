@@ -37,3 +37,23 @@ interface TuneSessionDao {
     @Delete
     suspend fun delete(session: TuneSession)
 }
+
+@Dao
+interface GuidedTuneSessionDao {
+    @Query("SELECT * FROM guided_tune_sessions ORDER BY updatedAtEpochMs DESC")
+    fun observeAll(): Flow<List<GuidedTuneSession>>
+
+    @Query(
+        "SELECT * FROM guided_tune_sessions WHERE protocolId = :protocolId AND status = 'IN_PROGRESS' ORDER BY updatedAtEpochMs DESC LIMIT 1"
+    )
+    suspend fun findInProgress(protocolId: String): GuidedTuneSession?
+
+    @Query("SELECT * FROM guided_tune_sessions WHERE id = :id")
+    suspend fun getById(id: Long): GuidedTuneSession?
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsert(session: GuidedTuneSession): Long
+
+    @Delete
+    suspend fun delete(session: GuidedTuneSession)
+}

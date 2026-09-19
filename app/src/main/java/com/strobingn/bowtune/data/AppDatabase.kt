@@ -6,13 +6,14 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 
 @Database(
-    entities = [BowSetup::class, TuneSession::class],
-    version = 1,
+    entities = [BowSetup::class, TuneSession::class, GuidedTuneSession::class],
+    version = 2,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun bowSetupDao(): BowSetupDao
     abstract fun tuneSessionDao(): TuneSessionDao
+    abstract fun guidedTuneSessionDao(): GuidedTuneSessionDao
 
     companion object {
         @Volatile
@@ -24,7 +25,10 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     "bowtune.db"
-                ).build().also { instance = it }
+                )
+                    .fallbackToDestructiveMigration()
+                    .build()
+                    .also { instance = it }
             }
     }
 }
