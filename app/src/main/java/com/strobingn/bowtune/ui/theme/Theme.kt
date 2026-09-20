@@ -8,55 +8,75 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
 private val DarkColors = darkColorScheme(
-    primary = Green80,
-    onPrimary = Green20,
-    primaryContainer = Green40,
-    onPrimaryContainer = Green90,
-    secondary = Teal80,
-    onSecondary = Color(0xFF003731),
-    secondaryContainer = Teal40,
-    onSecondaryContainer = Teal80,
-    tertiary = Amber80,
-    onTertiary = Color(0xFF3E2E00),
-    error = Error80,
-    onError = Color(0xFF690005),
+    primary = Grey90,
+    onPrimary = Grey10,
+    primaryContainer = Grey30,
+    onPrimaryContainer = Grey95,
+    secondary = Grey80,
+    onSecondary = Grey10,
+    secondaryContainer = Grey20,
+    onSecondaryContainer = Grey90,
+    tertiary = Grey70,
+    onTertiary = Grey10,
+    tertiaryContainer = WarningContainerDark,
+    onTertiaryContainer = Grey90,
+    error = Grey80,
+    onError = Grey10,
+    errorContainer = Grey20,
+    onErrorContainer = Grey90,
     background = Grey10,
-    onBackground = Grey90,
+    onBackground = Grey95,
     surface = Grey10,
-    onSurface = Grey90,
-    surfaceVariant = Color(0xFF414941),
-    onSurfaceVariant = Color(0xFFC1C9BE)
+    onSurface = Grey95,
+    surfaceVariant = Grey20,
+    onSurfaceVariant = Grey80,
+    outline = Grey50,
+    outlineVariant = Grey30,
+    inverseSurface = Grey90,
+    inverseOnSurface = Grey10,
+    inversePrimary = Grey40,
+    scrim = Grey00
 )
 
 private val LightColors = lightColorScheme(
-    primary = Green40,
-    onPrimary = Color.White,
-    primaryContainer = Green90,
-    onPrimaryContainer = Green20,
-    secondary = Teal40,
-    onSecondary = Color.White,
-    secondaryContainer = Color(0xFFB2DFDB),
-    onSecondaryContainer = Color(0xFF00201C),
-    tertiary = Amber40,
-    onTertiary = Color(0xFF3E2E00),
-    error = Error40,
-    onError = Color.White,
+    primary = Grey20,
+    onPrimary = Grey100,
+    primaryContainer = Grey90,
+    onPrimaryContainer = Grey10,
+    secondary = Grey40,
+    onSecondary = Grey100,
+    secondaryContainer = Grey95,
+    onSecondaryContainer = Grey15,
+    tertiary = Grey50,
+    onTertiary = Grey100,
+    tertiaryContainer = WarningContainerLight,
+    onTertiaryContainer = Grey15,
+    error = Grey40,
+    onError = Grey100,
+    errorContainer = Grey95,
+    onErrorContainer = Grey15,
     background = Grey99,
     onBackground = Grey10,
     surface = Grey99,
     onSurface = Grey10,
-    surfaceVariant = Color(0xFFDEE5D8),
-    onSurfaceVariant = Color(0xFF414941)
+    surfaceVariant = Grey95,
+    onSurfaceVariant = Grey40,
+    outline = Grey60,
+    outlineVariant = Grey80,
+    inverseSurface = Grey20,
+    inverseOnSurface = Grey95,
+    inversePrimary = Grey80,
+    scrim = Grey00
 )
 
 @Composable
 fun BowTuneTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    dynamicColor: Boolean = true,
+    // Disabled by default so Material You cannot inject chromatic colors.
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
