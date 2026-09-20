@@ -1,8 +1,8 @@
 # Bow Tune
 
-Android starter app for compound bow tuning: paper-tear diagnosis, a persisted tune checklist, gear/setups, session logs, and brand guides (Mathews Limb Shift, PSE EZ.220, Hoyt XTS, Bowtech DeadLock, Elite S.E.T.).
+Android starter app for compound bow tuning: paper-tear diagnosis, a persisted tune checklist, gear/setups, session logs, on-device **Shot Vision** (pose coaching + paper-tear photo assist), and brand guides (Mathews Limb Shift, PSE EZ.220, Hoyt XTS, Bowtech DeadLock, Elite S.E.T.).
 
-Built with **Kotlin**, **Jetpack Compose (Material 3)**, **Navigation**, **DataStore**, and **Room**.
+Built with **Kotlin**, **Jetpack Compose (Material 3)**, **Navigation**, **DataStore**, **Room**, **CameraX**, and **ML Kit Pose Detection** (on-device, no paid API keys).
 
 ## Open & run in Android Studio
 
@@ -13,7 +13,11 @@ Built with **Kotlin**, **Jetpack Compose (Material 3)**, **Navigation**, **DataS
 4. Copy `local.properties.example` → `local.properties` only if needed. Android Studio normally creates `local.properties` with your `sdk.dir`. **Do not commit `local.properties`** (it can contain machine-specific paths).
 5. Select an emulator or device, then click **Run** on the `app` configuration (`com.strobingn.bowtune`).
 
-Minimum SDK: 26 · Target / compile SDK: 35
+Minimum SDK: 26 · Target / compile SDK: 35 · Version: **1.1.0** (versionCode 2)
+
+## Branding / theme
+
+UI is **grayscale only** (blacks, greys, whites). `BowTuneTheme` sets **`dynamicColor = false`** by default so Material You cannot inject purple/lavender or other chromatic accents on device wallpapers.
 
 ## App tabs
 
@@ -23,7 +27,15 @@ Minimum SDK: 26 · Target / compile SDK: 35
 | **Checklist** | Six-phase tune checklist; checked state persisted via DataStore (`ChecklistStore`). |
 | **Gear** | Bow setups in Room (`BowSetupDao`) — brand, rest, limb shift, yoke, cams, notes. |
 | **Sessions** | Tune session log in Room (`TuneSessionDao`) — distance, group, notes. **Guided:** Sessions → **LIFT 29.5 — Vertical Tune (90 min)** (Mathews LIFT bare-shaft-high vertical protocol; persists `GuidedTuneSession` + wrap-up summary). |
+| **Vision** | On-device camera + ML Kit pose landmarks. **Form** mode: live skeleton overlay, freeze-frame coaching heuristics (shoulder tilt, elbow angles, head/lean), save notes to a `TuneSession`. **Paper tear** mode: capture a still, manually confirm tear type (assist only — no trained tear CV), jump into Paper Tear guidance. |
 | **Guides** | Mathews Limb Shift, PSE EZ.220, Hoyt XTS, Bowtech DeadLock, Elite S.E.T. |
+
+## Shot Vision notes
+
+- Requires **CAMERA** permission (runtime prompt).
+- Pose works best with decent lighting and a **side-ish / 3⁄4** angle at full-draw-ish stance.
+- Coaching tips are **heuristics**, not a coach — low-confidence states are called out in the UI.
+- Paper-tear photo flow is labeled **assist**; you confirm the tear type yourself.
 
 ## Download a debug APK (GitHub Actions)
 
@@ -34,6 +46,10 @@ A workflow builds `assembleDebug` on every push to `main` and on manual runs:
 3. Open the latest successful run.
 4. Under **Artifacts**, download **bowtune-debug-apk** (retained 30 days).
 5. Unzip the artifact and install the `.apk` on a device (allow install from unknown sources / via `adb install`).
+
+Stable release asset (overwritten each successful `main` build):
+
+https://github.com/Strobingn/Bowtune/releases/download/bowtune-debug-latest/app-debug.apk
 
 You can also start a build with **Actions → Build Debug APK → Run workflow**.
 
@@ -51,12 +67,12 @@ If `gradle-wrapper.jar` is not present (binary often omitted from text-only push
 
 ```
 app/src/main/java/com/strobingn/bowtune/
-  data/           # Room, DataStore, paper-tear guidance, checklist, LIFT guided plan
-  ui/screens/     # papertear, checklist, gear, sessions, guides
+  data/           # Room, DataStore, paper-tear guidance, checklist, LIFT guided plan, FormAnalysis
+  ui/screens/     # papertear, checklist, gear, sessions, vision, guides
   ui/navigation/  # bottom nav + NavHost
-  ui/theme/       # Material 3 theme
+  ui/theme/       # Material 3 grayscale theme (dynamicColor off)
 ```
 
 ## License / disclaimer
 
-Tuning guidance is educational — always follow your bow manufacturer’s manuals and safe shop practices. Small adjustments, one change at a time, and verify with paper / bare shaft / walk-back before hunting.
+Tuning guidance is educational — always follow your bow manufacturer’s manuals and safe shop practices. Small adjustments, one change at a time, and verify with paper / bare shaft / walk-back before hunting. Shot Vision pose tips are assistive heuristics only.

@@ -1,10 +1,12 @@
 package com.strobingn.bowtune.ui.screens.papertear
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -22,6 +24,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -35,17 +38,31 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.strobingn.bowtune.data.PaperTearGuidance
 import com.strobingn.bowtune.data.TearType
+import com.strobingn.bowtune.ui.theme.Grey20
+import com.strobingn.bowtune.ui.theme.Grey30
+import com.strobingn.bowtune.ui.theme.Grey90
+import com.strobingn.bowtune.ui.theme.Grey95
+import com.strobingn.bowtune.ui.theme.WarningContainerDark
+import com.strobingn.bowtune.ui.theme.WarningContainerLight
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
-fun PaperTearScreen() {
-    var selected by rememberSaveable { mutableStateOf(TearType.BULLET.name) }
+fun PaperTearScreen(initialTear: String? = null) {
+    var selected by rememberSaveable(initialTear) {
+        mutableStateOf(
+            initialTear?.takeIf { name -> TearType.entries.any { it.name == name } }
+                ?: TearType.BULLET.name
+        )
+    }
     val tear = TearType.entries.firstOrNull { it.name == selected } ?: TearType.BULLET
     val steps = PaperTearGuidance.stepsFor(tear)
+    val dark = isSystemInDarkTheme()
 
     Scaffold(
         topBar = {
@@ -71,7 +88,7 @@ fun PaperTearScreen() {
                     icon = Icons.Filled.Warning,
                     title = "Grip torque",
                     body = PaperTearGuidance.GRIP_TORQUE_NOTE,
-                    tonal = true
+                    warningStyle = true
                 )
             }
             item {
@@ -89,7 +106,12 @@ fun PaperTearScreen() {
                         FilterChip(
                             selected = tear == type,
                             onClick = { selected = type.name },
-                            label = { Text(type.label) }
+                            label = { Text(type.label) },
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = if (dark) Grey30 else Grey90,
+                                selectedLabelColor = if (dark) Grey95 else Grey20,
+                                selectedLeadingIconColor = if (dark) Grey95 else Grey20
+                            )
                         )
                     }
                 }
@@ -105,7 +127,8 @@ fun PaperTearScreen() {
                         Text(
                             tear.label,
                             style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                         Spacer(Modifier.height(4.dp))
                         Text(
@@ -160,31 +183,43 @@ fun PaperTearScreen() {
 
 @Composable
 private fun TipCard(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    icon: ImageVector,
     title: String,
     body: String,
-    tonal: Boolean = false
+    warningStyle: Boolean = false
 ) {
+    val dark = isSystemInDarkTheme()
+    val container: Color
+    val content: Color
+    if (warningStyle) {
+        container = if (dark) WarningContainerDark else WarningContainerLight
+        content = if (dark) Grey95 else Grey20
+    } else {
+        container = MaterialTheme.colorScheme.surfaceVariant
+        content = MaterialTheme.colorScheme.onSurfaceVariant
+    }
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = if (tonal) {
-            CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.tertiaryContainer
-            )
-        } else {
-            CardDefaults.cardColors()
-        }
+        colors = CardDefaults.cardColors(
+            containerColor = container,
+            contentColor = content
+        )
     ) {
         Column(Modifier.padding(14.dp)) {
-            androidx.compose.foundation.layout.Row(
+            Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Icon(icon, contentDescription = null)
-                Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                Icon(icon, contentDescription = null, tint = content)
+                Text(
+                    title,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = content
+                )
             }
             Spacer(Modifier.height(6.dp))
-            Text(body, style = MaterialTheme.typography.bodyMedium)
+            Text(body, style = MaterialTheme.typography.bodyMedium, color = content)
         }
     }
 }

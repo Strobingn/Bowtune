@@ -16,6 +16,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
+import com.strobingn.bowtune.data.TearType
 import com.strobingn.bowtune.ui.screens.checklist.ChecklistScreen
 import com.strobingn.bowtune.ui.screens.gear.GearScreen
 import com.strobingn.bowtune.ui.screens.guides.GuideDetailScreen
@@ -23,6 +24,7 @@ import com.strobingn.bowtune.ui.screens.guides.GuidesListScreen
 import com.strobingn.bowtune.ui.screens.papertear.PaperTearScreen
 import com.strobingn.bowtune.ui.screens.sessions.LiftVerticalTuneSessionScreen
 import com.strobingn.bowtune.ui.screens.sessions.SessionsScreen
+import com.strobingn.bowtune.ui.screens.vision.ShotVisionScreen
 
 @Composable
 fun BowTuneBottomBar(navController: NavHostController) {
@@ -31,7 +33,9 @@ fun BowTuneBottomBar(navController: NavHostController) {
 
     NavigationBar {
         TopLevelDestination.all.forEach { dest ->
-            val selected = current?.hierarchy?.any { it.route == dest.route } == true ||
+            val selected = current?.hierarchy?.any { route ->
+                route.route?.substringBefore("?") == dest.route
+            } == true ||
                 (dest == TopLevelDestination.Guides && current?.route?.startsWith("guides") == true) ||
                 (dest == TopLevelDestination.Sessions && current?.route?.startsWith("sessions") == true)
             NavigationBarItem(
@@ -68,7 +72,18 @@ fun BowTuneNavHost(
         startDestination = TopLevelDestination.PaperTear.route,
         modifier = modifier
     ) {
-        composable(TopLevelDestination.PaperTear.route) { PaperTearScreen() }
+        composable(
+            route = "paper_tear?tear={tear}",
+            arguments = listOf(
+                navArgument("tear") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                }
+            )
+        ) { entry ->
+            PaperTearScreen(initialTear = entry.arguments?.getString("tear"))
+        }
         composable(TopLevelDestination.Checklist.route) { ChecklistScreen() }
         composable(TopLevelDestination.Gear.route) { GearScreen() }
         composable(SessionRoutes.LIST) {
@@ -81,6 +96,19 @@ fun BowTuneNavHost(
         composable(SessionRoutes.LIFT_VERTICAL) {
             LiftVerticalTuneSessionScreen(
                 onBack = { navController.popBackStack() }
+            )
+        }
+        composable(TopLevelDestination.Vision.route) {
+            ShotVisionScreen(
+                onOpenPaperTear = { tear: TearType ->
+                    navController.navigate(PaperTearRoutes.withTear(tear.name)) {
+                        popUpTo(navController.graph.findStartDestination().id) {
+                            saveState = true
+                        }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                }
             )
         }
         composable(GuideRoutes.LIST) {
