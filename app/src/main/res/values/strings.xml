@@ -5,5 +5,6 @@
     <string name="nav_checklist">Checklist</string>
     <string name="nav_gear">Gear</string>
     <string name="nav_sessions">Sessions</string>
+    <string name="nav_vision">Vision</string>
     <string name="nav_guides">Guides</string>
 </resources>

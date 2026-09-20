@@ -2,6 +2,7 @@ package com.strobingn.bowtune.ui.navigation
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Checklist
 import androidx.compose.material.icons.filled.GpsFixed
 import androidx.compose.material.icons.filled.MenuBook
@@ -17,10 +18,11 @@ sealed class TopLevelDestination(
     data object Checklist : TopLevelDestination("checklist", "Checklist", Icons.Filled.Checklist)
     data object Gear : TopLevelDestination("gear", "Gear", Icons.Filled.Build)
     data object Sessions : TopLevelDestination("sessions", "Sessions", Icons.Filled.SportsScore)
+    data object Vision : TopLevelDestination("vision", "Vision", Icons.Filled.CameraAlt)
     data object Guides : TopLevelDestination("guides", "Guides", Icons.Filled.MenuBook)
 
     companion object {
-        val all = listOf(PaperTear, Checklist, Gear, Sessions, Guides)
+        val all = listOf(PaperTear, Checklist, Gear, Sessions, Vision, Guides)
     }
 }
 
@@ -33,4 +35,10 @@ object GuideRoutes {
 object SessionRoutes {
     const val LIST = "sessions"
     const val LIFT_VERTICAL = "sessions/lift_vertical"
+}
+
+object PaperTearRoutes {
+    const val ROOT = "paper_tear"
+    const val WITH_TEAR = "paper_tear?tear={tear}"
+    fun withTear(tear: String) = "paper_tear?tear=$tear"
 }
