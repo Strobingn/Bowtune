@@ -13,14 +13,29 @@ android {
         applicationId = "com.strobingn.bowtune"
         minSdk = 26
         targetSdk = 35
-        versionCode = 2
-        versionName = "1.1.0"
+        versionCode = 3
+        versionName = "1.1.1"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // Phone-only ABIs — drop x86/x86_64 emulator libs from the downloadable APK.
+        ndk {
+            abiFilters += listOf("armeabi-v7a", "arm64-v8a")
+        }
     }
 
     buildTypes {
+        debug {
+            // Smaller CI/debug APK for mobile downloads while staying installable.
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+        }
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -44,6 +59,11 @@ android {
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        }
+        // Compress JNI (.so) inside the APK so the download size is smaller on mobile.
+        // (AGP 8+ stores native libs uncompressed by default, which bloats release assets.)
+        jniLibs {
+            useLegacyPackaging = true
         }
     }
 }
@@ -73,7 +93,7 @@ dependencies {
     implementation("androidx.room:room-ktx:2.6.1")
     ksp("androidx.room:room-compiler:2.6.1")
 
-    // CameraX + on-device ML Kit pose (Shot Vision)
+    // CameraX + on-device ML Kit pose (Shot Vision) — base model only (not accurate).
     val cameraX = "1.4.0"
     implementation("androidx.camera:camera-core:$cameraX")
     implementation("androidx.camera:camera-camera2:$cameraX")

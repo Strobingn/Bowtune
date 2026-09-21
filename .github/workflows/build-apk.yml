@@ -34,8 +34,19 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
+      # assembleDebug now minifies + ABI-filters ARM only (see app/build.gradle.kts)
       - name: Assemble debug APK
         run: ./gradlew assembleDebug --no-daemon --stacktrace
+
+      - name: Report APK size
+        run: |
+          ls -lh app/build/outputs/apk/debug/*.apk
+          python3 - <<'PY'
+          import pathlib
+          for p in pathlib.Path("app/build/outputs/apk/debug").glob("*.apk"):
+              mb = p.stat().st_size / (1024 * 1024)
+              print(f"{p.name}: {mb:.1f} MB ({p.stat().st_size} bytes)")
+          PY
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
@@ -51,9 +62,15 @@ jobs:
           tag_name: bowtune-debug-latest
           name: Bow Tune Debug APK
           body: |
-            Unsigned debug build of Bow Tune (main).
+            Unsigned debug build of Bow Tune (`main`).
 
-            Includes LIFT session support and the latest app changes from `main`.
+            Size-optimized for mobile download:
+            - ML Kit **base** pose model only (`pose-detection`, not accurate)
+            - ABI filters: `armeabi-v7a`, `arm64-v8a` (no x86)
+            - R8 minify + resource shrink on debug
+            - Compressed native libs in the APK
+
+            Includes grayscale UI, Shot Vision form analysis, and LIFT session support.
             Install for testing only — not a Play Store / release-signed build.
             Rebuilt and overwritten on every successful `main` CI run.
           files: app/build/outputs/apk/debug/*.apk
