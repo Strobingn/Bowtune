@@ -74,7 +74,8 @@ fun HomeScreen(
     onOpenPaperTear: () -> Unit,
     onOpenGear: () -> Unit,
     onOpenChecklist: () -> Unit,
-    onOpenSessions: () -> Unit
+    onOpenSessions: () -> Unit,
+    onOpenAdvancedLibrary: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val app = context.applicationContext as BowTuneApp
@@ -227,6 +228,13 @@ fun HomeScreen(
                             "${formatWhen(it.dateEpochMs)} · ${it.distanceYd} yd · ${it.scoreOrGroup.ifBlank { it.sessionKind }}"
                         } ?: "No sessions yet. Log a group in Logs.",
                         onClick = onOpenSessions
+                    )
+                }
+                item {
+                    DashCard(
+                        title = "Advanced Tuning library",
+                        body = "Bare shaft walkthroughs, nock clocking, French, walk-back, planing, broadheads, CR paper depth. Guides tab has the same entry.",
+                        onClick = onOpenAdvancedLibrary
                     )
                 }
                 item { SectionLabel("Tools") }

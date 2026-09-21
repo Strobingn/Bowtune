@@ -34,6 +34,14 @@ object GuideRoutes {
     fun detail(guideId: String) = "guides/$guideId"
 }
 
+object AdvancedTuneRoutes {
+    const val LIST = "advanced"
+    const val DETAIL = "advanced/{guideId}"
+    const val WALK = "advanced/{guideId}/section/{sectionId}"
+    fun detail(guideId: String) = "advanced/$guideId"
+    fun walk(guideId: String, sectionId: String) = "advanced/$guideId/section/$sectionId"
+}
+
 object SessionRoutes {
     const val LIST = "sessions"
     const val LIFT_VERTICAL = "sessions/lift_vertical"
