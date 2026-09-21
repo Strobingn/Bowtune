@@ -62,6 +62,7 @@ import com.strobingn.bowtune.data.CoachingLevel
 import com.strobingn.bowtune.data.PaperTearGuidance
 import com.strobingn.bowtune.data.PaperTearLog
 import com.strobingn.bowtune.data.TearType
+import com.strobingn.bowtune.data.advanced.AdvancedTuneIds
 import com.strobingn.bowtune.ui.common.formatWhen
 import com.strobingn.bowtune.ui.theme.Grey20
 import com.strobingn.bowtune.ui.theme.Grey30
@@ -74,7 +75,10 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
-fun PaperTearScreen(initialTear: String? = null) {
+fun PaperTearScreen(
+    initialTear: String? = null,
+    onOpenAdvanced: (String) -> Unit = {}
+) {
     val context = LocalContext.current
     val app = context.applicationContext as BowTuneApp
     val scope = rememberCoroutineScope()
@@ -344,6 +348,15 @@ fun PaperTearScreen(initialTear: String? = null) {
                     title = "Order of attack",
                     body = PaperTearGuidance.GENERAL_HARDWARE
                 )
+                Spacer(Modifier.height(8.dp))
+                OutlinedButton(
+                    onClick = { onOpenAdvanced(AdvancedTuneIds.PAPER) },
+                    modifier = Modifier.fillMaxWidth()
+                ) { Text("Advanced paper — paradox, minnowing, false tears") }
+                OutlinedButton(
+                    onClick = { onOpenAdvanced(AdvancedTuneIds.BARE_SHAFT) },
+                    modifier = Modifier.fillMaxWidth()
+                ) { Text("Next: bare shaft walkthrough (field confirm)") }
                 Spacer(Modifier.height(8.dp))
                 OutlinedButton(
                     onClick = {

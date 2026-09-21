@@ -13,7 +13,7 @@ Built with **Kotlin**, **Jetpack Compose (Material 3)**, **Navigation**, **DataS
 4. Copy `local.properties.example` → `local.properties` only if needed. Android Studio normally creates `local.properties` with your `sdk.dir`. **Do not commit `local.properties`** (it can contain machine-specific paths).
 5. Select an emulator or device, then click **Run** on the `app` configuration (`com.strobingn.bowtune`).
 
-Minimum SDK: 26 · Target / compile SDK: 35 · Version: **1.2.0** (versionCode 4)
+Minimum SDK: 26 · Target / compile SDK: 35 · Version: **1.3.0** (versionCode 5)
 
 ## Branding / theme
 
@@ -29,7 +29,7 @@ UI is **grayscale only** (blacks, greys, whites). `BowTuneTheme` sets **`dynamic
 | **Gear** | Multi-bow profiles (Set active), arrows + FOC, adjustment logbook, side-by-side compare, cam/cable service dates. |
 | **Sessions** | Group / paper / bare / walk-back / broadhead logs with conditions, shareable report, brand short wizards + LIFT 29.5. |
 | **Vision** | On-device camera + ML Kit pose landmarks. **Form** mode: live skeleton overlay, freeze-frame coaching heuristics (shoulder tilt, elbow angles, head/lean), save notes to a `TuneSession`. **Paper tear** mode: capture a still, manually confirm tear type (assist only — no trained tear CV), jump into Paper Tear guidance. |
-| **Guides** | Mathews Limb Shift, PSE EZ.220, Hoyt XTS, Bowtech DeadLock, Elite S.E.T. |
+| **Guides** | **Advanced Tuning library** (bare shaft walkthroughs, fletched, nock clocking, walk-back, French, planing, broadheads, CR paper depth, torque, yoke/Limb Shift, tiller/timing, dynamic spine) plus Mathews Limb Shift, PSE EZ.220, Hoyt XTS, Bowtech DeadLock, Elite S.E.T. |
 
 ## Shot Vision notes
 
@@ -60,6 +60,14 @@ This repo includes `gradlew`, `gradlew.bat`, and `gradle/wrapper/gradle-wrapper.
 If `gradle-wrapper.jar` is not present (binary often omitted from text-only pushes), Android Studio will generate it on sync, and the CI workflow downloads it before `./gradlew assembleDebug`.
 
 
+## Advanced Tuning library (1.3.0)
+
+Reachable from **Home**, **Guides**, **Logs** (including the bare/walk-back/paper/broadhead session editor), and **Tear** (after the order-of-attack card). Expandable cards plus optional stepped “Walk through on the range” screens.
+
+Compound + mechanical release first. Easton CR paper left/right rest directions on the Tear tab are unchanged (RH nock-left → rest right / Limb Shift L; nock-right → rest left / Limb Shift R; clearance before stiff-spine on rights). Finger/recurve inversions are labeled in the library, not applied to Tear.
+
+A **Bare shaft** checklist template walks the field-first sequence (setup → optional paper → nock → horizontal → walk-back/French/BH).
+
 ## Guided sessions
 
 - **Sessions → LIFT 29.5 — Vertical Tune (90 min)** — step-through protocol for Mathews LIFT 29.5 prioritizing bare-shaft vertical first (baseline → bare vertical → paper confirm → torque → walk-back → balance → final 30). End screen includes a decision tree and **required** four-number wrap-up (`bareShaftHl20`, `bareShaftLr20`, `walkBackLr30`, `final30GroupSize`). Completing saves a `GuidedTuneSession` and a `TuneSession` summary note with those numbers.
@@ -69,6 +77,7 @@ If `gradle-wrapper.jar` is not present (binary often omitted from text-only push
 ```
 app/src/main/java/com/strobingn/bowtune/
   data/           # Room, DataStore, paper-tear guidance, checklist, LIFT guided plan, FormAnalysis
+  data/advanced/  # Advanced Tuning library copy (bare, French, walk-back, nock, paper depth, …)
   ui/screens/     # papertear, checklist, gear, sessions, vision, guides
   ui/navigation/  # bottom nav + NavHost
   ui/theme/       # Material 3 grayscale theme (dynamicColor off)

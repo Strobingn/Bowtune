@@ -56,6 +56,7 @@ import com.strobingn.bowtune.data.ReportBuilder
 import com.strobingn.bowtune.data.SessionKind
 import com.strobingn.bowtune.data.TuneHints
 import com.strobingn.bowtune.data.TuneSession
+import com.strobingn.bowtune.data.advanced.AdvancedTuneIds
 import com.strobingn.bowtune.data.toDoubleOrNullLenient
 import com.strobingn.bowtune.ui.common.EmptyState
 import com.strobingn.bowtune.ui.common.HintCard
@@ -67,7 +68,9 @@ import kotlinx.coroutines.launch
 @Composable
 fun SessionsScreen(
     onOpenLiftVerticalTune: () -> Unit = {},
-    onOpenWizard: (String) -> Unit = {}
+    onOpenWizard: (String) -> Unit = {},
+    onOpenAdvanced: (String) -> Unit = {},
+    onOpenAdvancedLibrary: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val app = context.applicationContext as BowTuneApp
@@ -121,6 +124,13 @@ fun SessionsScreen(
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
+            item {
+                WizardCard(
+                    title = "Advanced Tuning library",
+                    subtitle = "Bare shaft walkthroughs, French, walk-back, nock clocking, CR paper depth.",
+                    onClick = onOpenAdvancedLibrary
+                )
+            }
             item {
                 WizardCard(
                     title = LiftVerticalTunePlan.CARD_LABEL,
@@ -209,6 +219,10 @@ fun SessionsScreen(
         SessionEditorDialog(
             defaultSetup = active?.name.orEmpty(),
             onDismiss = { showEditor = false },
+            onOpenAdvanced = { id ->
+                showEditor = false
+                onOpenAdvanced(id)
+            },
             onSave = { session ->
                 scope.launch {
                     dao.upsert(session)
@@ -243,6 +257,7 @@ private fun WizardCard(title: String, subtitle: String, onClick: () -> Unit) {
 private fun SessionEditorDialog(
     defaultSetup: String,
     onDismiss: () -> Unit,
+    onOpenAdvanced: (String) -> Unit = {},
     onSave: (TuneSession) -> Unit
 ) {
     var kind by remember { mutableStateOf(SessionKind.GROUP) }
@@ -325,6 +340,21 @@ private fun SessionEditorDialog(
                     OutlinedTextField(bhV, { bhV = it }, label = { Text("BH vs field high/low (in)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
                 }
                 hint?.let { HintCard(it) }
+                when (kind) {
+                    SessionKind.BARE_SHAFT -> TextButton(onClick = { onOpenAdvanced(AdvancedTuneIds.BARE_SHAFT) }) {
+                        Text("Open bare shaft walkthrough")
+                    }
+                    SessionKind.WALKBACK -> TextButton(onClick = { onOpenAdvanced(AdvancedTuneIds.WALKBACK) }) {
+                        Text("Open walk-back / French guides")
+                    }
+                    SessionKind.BROADHEAD -> TextButton(onClick = { onOpenAdvanced(AdvancedTuneIds.BROADHEAD) }) {
+                        Text("Open broadhead tuning")
+                    }
+                    SessionKind.PAPER -> TextButton(onClick = { onOpenAdvanced(AdvancedTuneIds.PAPER) }) {
+                        Text("Open advanced paper (CR)")
+                    }
+                    else -> { }
+                }
                 OutlinedTextField(notes, { notes = it }, label = { Text("Notes") }, modifier = Modifier.fillMaxWidth())
             }
         },

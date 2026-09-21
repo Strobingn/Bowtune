@@ -91,6 +91,44 @@ object ChecklistTemplates {
         )
     )
 
+    val BARE_SHAFT = ChecklistTemplate(
+        id = "bareshaft",
+        name = "Bare shaft",
+        blurb = "Field-first sequence from the Advanced Tuning library.",
+        items = listOf(
+            ChecklistItem(
+                "bs_setup",
+                "1. Setup",
+                "DL, timing, D-loop, nock 1/8–1/4 in, rest at brand start",
+                "Do not start with a random rest. One variable later."
+            ),
+            ChecklistItem(
+                "bs_optional_paper",
+                "2. Optional paper",
+                "One 4–6 ft hole if you need a contact check",
+                "Ugly changing tears = clearance/grip, not a rest religion. Tear tab keeps the CR map."
+            ),
+            ChecklistItem(
+                "bs_nock",
+                "3. Nock point",
+                "Two bare passes at 20 yd; high → nock up (Easton)",
+                "Do not move the rest while vertical is open. Guides → Advanced → Bare shaft."
+            ),
+            ChecklistItem(
+                "bs_spine_rest",
+                "4. Horizontal",
+                "Spine vs centershot after grip/powder",
+                "RH CR bare left → rest right or weak. Bare right → rest left / clearance."
+            ),
+            ChecklistItem(
+                "bs_confirm",
+                "5. Confirm",
+                "Walk-back or French, then broadheads",
+                "Fan = rest. Parallel = sight. Same CR directions as Tear."
+            )
+        )
+    )
+
     val INDOOR = ChecklistTemplate(
         id = "indoor",
         name = "Indoor league",
@@ -123,7 +161,7 @@ object ChecklistTemplates {
         )
     )
 
-    val all: List<ChecklistTemplate> = listOf(FULL, PAPER_ONLY, HUNTING, INDOOR)
+    val all: List<ChecklistTemplate> = listOf(FULL, PAPER_ONLY, HUNTING, BARE_SHAFT, INDOOR)
 
     fun byId(id: String): ChecklistTemplate =
         all.firstOrNull { it.id == id } ?: FULL

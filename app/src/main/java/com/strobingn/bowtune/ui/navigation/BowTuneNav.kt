@@ -19,6 +19,9 @@ import androidx.navigation.navArgument
 import com.strobingn.bowtune.data.TearType
 import com.strobingn.bowtune.ui.screens.checklist.ChecklistScreen
 import com.strobingn.bowtune.ui.screens.gear.GearScreen
+import com.strobingn.bowtune.ui.screens.guides.AdvancedTuneDetailScreen
+import com.strobingn.bowtune.ui.screens.guides.AdvancedTuneListScreen
+import com.strobingn.bowtune.ui.screens.guides.AdvancedTuneWalkthroughScreen
 import com.strobingn.bowtune.ui.screens.guides.GuideDetailScreen
 import com.strobingn.bowtune.ui.screens.guides.GuidesListScreen
 import com.strobingn.bowtune.ui.screens.home.HomeScreen
@@ -38,7 +41,10 @@ fun BowTuneBottomBar(navController: NavHostController) {
             val selected = current?.hierarchy?.any { route ->
                 route.route?.substringBefore("?") == dest.route
             } == true ||
-                (dest == TopLevelDestination.Guides && current?.route?.startsWith("guides") == true) ||
+                (dest == TopLevelDestination.Guides && (
+                    current?.route?.startsWith("guides") == true ||
+                        current?.route?.startsWith("advanced") == true
+                    )) ||
                 (dest == TopLevelDestination.Sessions && current?.route?.startsWith("sessions") == true)
             NavigationBarItem(
                 selected = selected,
@@ -103,6 +109,9 @@ fun BowTuneNavHost(
                         launchSingleTop = true
                         restoreState = true
                     }
+                },
+                onOpenAdvancedLibrary = {
+                    navController.navigate(AdvancedTuneRoutes.LIST)
                 }
             )
         }
@@ -116,7 +125,10 @@ fun BowTuneNavHost(
                 }
             )
         ) { entry ->
-            PaperTearScreen(initialTear = entry.arguments?.getString("tear"))
+            PaperTearScreen(
+                initialTear = entry.arguments?.getString("tear"),
+                onOpenAdvanced = { id -> navController.navigate(AdvancedTuneRoutes.detail(id)) }
+            )
         }
         composable(TopLevelDestination.Checklist.route) { ChecklistScreen() }
         composable(TopLevelDestination.Gear.route) { GearScreen() }
@@ -125,7 +137,11 @@ fun BowTuneNavHost(
                 onOpenLiftVerticalTune = {
                     navController.navigate(SessionRoutes.LIFT_VERTICAL)
                 },
-                onOpenWizard = { id -> navController.navigate(SessionRoutes.wizard(id)) }
+                onOpenWizard = { id -> navController.navigate(SessionRoutes.wizard(id)) },
+                onOpenAdvanced = { id -> navController.navigate(AdvancedTuneRoutes.detail(id)) },
+                onOpenAdvancedLibrary = {
+                    navController.navigate(AdvancedTuneRoutes.LIST)
+                }
             )
         }
         composable(SessionRoutes.LIFT_VERTICAL) {
@@ -158,7 +174,9 @@ fun BowTuneNavHost(
         composable(GuideRoutes.LIST) {
             GuidesListScreen(
                 onOpenGuide = { id -> navController.navigate(GuideRoutes.detail(id)) },
-                onOpenWizard = { id -> navController.navigate(SessionRoutes.wizard(id)) }
+                onOpenWizard = { id -> navController.navigate(SessionRoutes.wizard(id)) },
+                onOpenAdvancedLibrary = { navController.navigate(AdvancedTuneRoutes.LIST) },
+                onOpenAdvancedGuide = { id -> navController.navigate(AdvancedTuneRoutes.detail(id)) }
             )
         }
         composable(
@@ -170,6 +188,41 @@ fun BowTuneNavHost(
                 guideId = id,
                 onBack = { navController.popBackStack() },
                 onOpenWizard = { wiz -> navController.navigate(SessionRoutes.wizard(wiz)) }
+            )
+        }
+        composable(AdvancedTuneRoutes.LIST) {
+            AdvancedTuneListScreen(
+                onOpenGuide = { id -> navController.navigate(AdvancedTuneRoutes.detail(id)) },
+                onBack = { navController.popBackStack() }
+            )
+        }
+        composable(
+            route = AdvancedTuneRoutes.DETAIL,
+            arguments = listOf(navArgument("guideId") { type = NavType.StringType })
+        ) { entry ->
+            val id = entry.arguments?.getString("guideId").orEmpty()
+            AdvancedTuneDetailScreen(
+                guideId = id,
+                onBack = { navController.popBackStack() },
+                onOpenRelated = { related ->
+                    navController.navigate(AdvancedTuneRoutes.detail(related))
+                },
+                onOpenWalkthrough = { g, s ->
+                    navController.navigate(AdvancedTuneRoutes.walk(g, s))
+                }
+            )
+        }
+        composable(
+            route = AdvancedTuneRoutes.WALK,
+            arguments = listOf(
+                navArgument("guideId") { type = NavType.StringType },
+                navArgument("sectionId") { type = NavType.StringType }
+            )
+        ) { entry ->
+            AdvancedTuneWalkthroughScreen(
+                guideId = entry.arguments?.getString("guideId").orEmpty(),
+                sectionId = entry.arguments?.getString("sectionId").orEmpty(),
+                onBack = { navController.popBackStack() }
             )
         }
     }
