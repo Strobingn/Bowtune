@@ -37,6 +37,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.strobingn.bowtune.BowTuneApp
 import com.strobingn.bowtune.data.BrandWizardCatalog
 import com.strobingn.bowtune.data.GuidedTuneSession
@@ -56,14 +57,10 @@ fun BrandWizardScreen(
     val app = context.applicationContext as BowTuneApp
     val guidedDao = remember { app.database.guidedTuneSessionDao() }
     val tuneDao = remember { app.database.tuneSessionDao() }
-    val setups by androidx.lifecycle.compose.collectAsStateWithLifecycle(
-        app.database.bowSetupDao().observeAll(),
-        initialValue = emptyList()
-    )
-    val activeId by androidx.lifecycle.compose.collectAsStateWithLifecycle(
-        app.preferences.activeSetupId,
-        initialValue = 0L
-    )
+    val setups by app.database.bowSetupDao().observeAll()
+        .collectAsStateWithLifecycle(initialValue = emptyList())
+    val activeId by app.preferences.activeSetupId
+        .collectAsStateWithLifecycle(initialValue = 0L)
     val scope = rememberCoroutineScope()
 
     if (wizard == null) {
