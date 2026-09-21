@@ -77,7 +77,7 @@ object LiftVerticalTunePlan {
             suggestedMinutes = 12,
             title = "Paper confirm only",
             instructions = """
-                Shoot 3 fletched through paper at ~6 ft. Log each tear V+H.
+                Shoot 3 fletched through paper at 4-6 ft (Easton start). Log each tear V+H.
                 If paper AGREES with bare-shaft vertical → investigate clearance / grip / face before moving the bow.
                 If paper DISAGREES with bare → do not chase paper alone; resolve shooter/clearance first.
                 This block confirms; it does not start a new tune path.

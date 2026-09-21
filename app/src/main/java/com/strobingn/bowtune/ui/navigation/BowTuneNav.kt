@@ -21,7 +21,9 @@ import com.strobingn.bowtune.ui.screens.checklist.ChecklistScreen
 import com.strobingn.bowtune.ui.screens.gear.GearScreen
 import com.strobingn.bowtune.ui.screens.guides.GuideDetailScreen
 import com.strobingn.bowtune.ui.screens.guides.GuidesListScreen
+import com.strobingn.bowtune.ui.screens.home.HomeScreen
 import com.strobingn.bowtune.ui.screens.papertear.PaperTearScreen
+import com.strobingn.bowtune.ui.screens.sessions.BrandWizardScreen
 import com.strobingn.bowtune.ui.screens.sessions.LiftVerticalTuneSessionScreen
 import com.strobingn.bowtune.ui.screens.sessions.SessionsScreen
 import com.strobingn.bowtune.ui.screens.vision.ShotVisionScreen
@@ -69,9 +71,41 @@ fun BowTuneNavHost(
 ) {
     NavHost(
         navController = navController,
-        startDestination = TopLevelDestination.PaperTear.route,
+        startDestination = TopLevelDestination.Home.route,
         modifier = modifier
     ) {
+        composable(TopLevelDestination.Home.route) {
+            HomeScreen(
+                onOpenPaperTear = {
+                    navController.navigate(TopLevelDestination.PaperTear.route) {
+                        popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                },
+                onOpenGear = {
+                    navController.navigate(TopLevelDestination.Gear.route) {
+                        popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                },
+                onOpenChecklist = {
+                    navController.navigate(TopLevelDestination.Checklist.route) {
+                        popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                },
+                onOpenSessions = {
+                    navController.navigate(TopLevelDestination.Sessions.route) {
+                        popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                }
+            )
+        }
         composable(
             route = "paper_tear?tear={tear}",
             arguments = listOf(
@@ -90,11 +124,21 @@ fun BowTuneNavHost(
             SessionsScreen(
                 onOpenLiftVerticalTune = {
                     navController.navigate(SessionRoutes.LIFT_VERTICAL)
-                }
+                },
+                onOpenWizard = { id -> navController.navigate(SessionRoutes.wizard(id)) }
             )
         }
         composable(SessionRoutes.LIFT_VERTICAL) {
             LiftVerticalTuneSessionScreen(
+                onBack = { navController.popBackStack() }
+            )
+        }
+        composable(
+            route = SessionRoutes.WIZARD,
+            arguments = listOf(navArgument("wizardId") { type = NavType.StringType })
+        ) { entry ->
+            BrandWizardScreen(
+                wizardId = entry.arguments?.getString("wizardId").orEmpty(),
                 onBack = { navController.popBackStack() }
             )
         }
@@ -113,7 +157,8 @@ fun BowTuneNavHost(
         }
         composable(GuideRoutes.LIST) {
             GuidesListScreen(
-                onOpenGuide = { id -> navController.navigate(GuideRoutes.detail(id)) }
+                onOpenGuide = { id -> navController.navigate(GuideRoutes.detail(id)) },
+                onOpenWizard = { id -> navController.navigate(SessionRoutes.wizard(id)) }
             )
         }
         composable(
@@ -123,7 +168,8 @@ fun BowTuneNavHost(
             val id = entry.arguments?.getString("guideId").orEmpty()
             GuideDetailScreen(
                 guideId = id,
-                onBack = { navController.popBackStack() }
+                onBack = { navController.popBackStack() },
+                onOpenWizard = { wiz -> navController.navigate(SessionRoutes.wizard(wiz)) }
             )
         }
     }

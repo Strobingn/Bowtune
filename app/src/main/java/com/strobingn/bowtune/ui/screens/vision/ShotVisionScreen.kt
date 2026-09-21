@@ -76,13 +76,18 @@ import com.google.mlkit.vision.pose.Pose
 import com.google.mlkit.vision.pose.PoseDetection
 import com.google.mlkit.vision.pose.PoseLandmark
 import com.google.mlkit.vision.pose.defaults.PoseDetectorOptions
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.strobingn.bowtune.BowTuneApp
+import com.strobingn.bowtune.data.CoachingLevel
 import com.strobingn.bowtune.data.CoachingTip
 import com.strobingn.bowtune.data.FormAnalysis
 import com.strobingn.bowtune.data.FormAnalysisResult
 import com.strobingn.bowtune.data.PaperTearGuidance
+import com.strobingn.bowtune.data.PaperTearLog
+import com.strobingn.bowtune.data.SessionKind
 import com.strobingn.bowtune.data.TearType
 import com.strobingn.bowtune.data.TuneSession
+import com.strobingn.bowtune.ui.common.tickHaptic
 import com.strobingn.bowtune.ui.theme.Grey20
 import com.strobingn.bowtune.ui.theme.Grey30
 import com.strobingn.bowtune.ui.theme.Grey90
@@ -102,9 +107,14 @@ fun ShotVisionScreen(
     val context = LocalContext.current
     val dark = isSystemInDarkTheme()
     val scope = rememberCoroutineScope()
-    val dao = remember {
-        (context.applicationContext as BowTuneApp).database.tuneSessionDao()
-    }
+    val app = context.applicationContext as BowTuneApp
+    val dao = remember { app.database.tuneSessionDao() }
+    val tearDao = remember { app.database.paperTearLogDao() }
+    val setups by app.database.bowSetupDao().observeAll().collectAsStateWithLifecycle(emptyList())
+    val activeId by app.preferences.activeSetupId.collectAsStateWithLifecycle(0L)
+    val coaching by app.preferences.coachingLevel.collectAsStateWithLifecycle(CoachingLevel.STANDARD)
+    val hapticOn by app.preferences.hapticEnabled.collectAsStateWithLifecycle(true)
+    val activeName = setups.firstOrNull { it.id == activeId }?.name.orEmpty()
 
     var hasCamPermission by remember {
         mutableStateOf(
@@ -225,8 +235,33 @@ fun ShotVisionScreen(
                     onCapture = {
                         val pose = livePose
                         if (pose != null) {
-                            frozenAnalysis = FormAnalysis.analyze(pose)
-                            savedMsg = null
+                            val result = FormAnalysis.analyze(pose, level = coaching)
+                            frozenAnalysis = result
+                            context.tickHaptic(hapticOn)
+                            if (result.tips.any { it.severity == CoachingTip.Severity.CAUTION }) {
+                                context.tickHaptic(hapticOn)
+                            }
+                            scope.launch {
+                                val notes = buildString {
+                                    appendLine("Shot Vision — form analysis (auto-attached)")
+                                    appendLine("Coaching: ${coaching.label}")
+                                    result.confidenceNote?.let { appendLine(it) }
+                                    result.tips.forEach { tip ->
+                                        appendLine("• ${tip.title}: ${tip.detail}")
+                                    }
+                                }.trim()
+                                dao.upsert(
+                                    TuneSession(
+                                        dateEpochMs = System.currentTimeMillis(),
+                                        distanceYd = "—",
+                                        scoreOrGroup = "Vision form",
+                                        notes = notes,
+                                        setupName = activeName.ifBlank { "Shot Vision" },
+                                        sessionKind = SessionKind.VISION
+                                    )
+                                )
+                                savedMsg = "Auto-attached to Sessions"
+                            }
                         }
                     },
                     onResume = {
@@ -248,7 +283,8 @@ fun ShotVisionScreen(
                                     distanceYd = "—",
                                     scoreOrGroup = "Vision form",
                                     notes = notes,
-                                    setupName = "Shot Vision"
+                                    setupName = activeName.ifBlank { "Shot Vision" },
+                                    sessionKind = SessionKind.VISION
                                 )
                             )
                             savedMsg = "Saved to Sessions"
@@ -291,6 +327,18 @@ fun ShotVisionScreen(
                     onSelect = { suggestedTear = it },
                     onConfirm = { tear ->
                         confirmedTear = tear
+                        context.tickHaptic(hapticOn)
+                        scope.launch {
+                            tearDao.upsert(
+                                PaperTearLog(
+                                    dateEpochMs = System.currentTimeMillis(),
+                                    tearType = tear.name,
+                                    setupName = activeName,
+                                    distanceFt = "4-6",
+                                    notes = "Confirmed from Shot Vision"
+                                )
+                            )
+                        }
                     },
                     onOpenGuidance = { tear -> onOpenPaperTear(tear) },
                     onRetake = {
@@ -484,7 +532,7 @@ private fun PaperTearBottomPanel(
                 TextButton(onClick = { onOpenGuidance(tear) }) {
                     Text("Open Paper Tear guidance")
                 }
-                PaperTearGuidance.stepsFor(tear).take(2).forEachIndexed { i, step ->
+                PaperTearGuidance.stepsFor(tear, CoachingLevel.STANDARD).take(2).forEachIndexed { i, step ->
                     Text("${i + 1}. $step", style = MaterialTheme.typography.bodySmall)
                 }
             }

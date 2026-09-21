@@ -6,14 +6,26 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 
 @Database(
-    entities = [BowSetup::class, TuneSession::class, GuidedTuneSession::class],
-    version = 2,
+    entities = [
+        BowSetup::class,
+        TuneSession::class,
+        GuidedTuneSession::class,
+        ArrowShaft::class,
+        PaperTearLog::class,
+        AdjustmentLog::class,
+        MaintenanceLog::class
+    ],
+    version = 3,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun bowSetupDao(): BowSetupDao
     abstract fun tuneSessionDao(): TuneSessionDao
     abstract fun guidedTuneSessionDao(): GuidedTuneSessionDao
+    abstract fun arrowShaftDao(): ArrowShaftDao
+    abstract fun paperTearLogDao(): PaperTearLogDao
+    abstract fun adjustmentLogDao(): AdjustmentLogDao
+    abstract fun maintenanceLogDao(): MaintenanceLogDao
 
     companion object {
         @Volatile

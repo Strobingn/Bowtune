@@ -9,6 +9,8 @@
 # Room
 -keep class * extends androidx.room.RoomDatabase
 -keep @androidx.room.Entity class *
+-keep @androidx.room.Dao interface *
+-keep class com.strobingn.bowtune.data.** { *; }
 -dontwarn androidx.room.paging.**
 
 # ML Kit pose (base)

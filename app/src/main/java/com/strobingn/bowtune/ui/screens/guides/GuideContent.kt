@@ -35,14 +35,14 @@ object GuideCatalog {
                         "Set draw length and cam timing / cable stops first.",
                         "Install D-loop; set nock height ~1/8-1/4\" above square.",
                         "Start centershot near manufacturer recommendation.",
-                        "Paper at 6-8 ft with relaxed grip before touching Limb Shift."
+                        "Paper at 4-6 ft with relaxed grip before touching Limb Shift."
                     )
                 ),
                 GuideSection(
                     "Left / right corrections (RH)",
                     listOf(
-                        "Nock-left tear: shift a small click toward correcting left (often toward the cable side - confirm with your year's manual).",
-                        "Nock-right tear: opposite Limb Shift direction.",
+                        "Nock-left tear (RH release): Limb Shift toward L (chase the tear). Rest moves right in small clicks — do not move the rest in for a left tear.",
+                        "Nock-right tear (RH release): Limb Shift toward R. Rest moves left (in toward the riser). Check vane/cable clearance; do not treat this as a stiff-spine first guess.",
                         "One click (or half-index), re-paper, then bare shaft at ~20 yd.",
                         "Finish with walk-back; use rest only for micro centershot."
                     )
@@ -75,14 +75,14 @@ object GuideCatalog {
                     listOf(
                         "Sync cams / set draw length and confirm cable-stop contact.",
                         "D-loop first, then nock height for vertical.",
-                        "Paper tune at 6-8 ft; confirm grip is neutral."
+                        "Paper tune at 4-6 ft; confirm grip is neutral."
                     )
                 ),
                 GuideSection(
                     "Horizontal workflow",
                     listOf(
-                        "RH nock-left: move rest slightly in, or adjust EZ.220 / cable side to pull nock right.",
-                        "RH nock-right: rest slightly out, or opposite EZ.220 move.",
+                        "RH nock-left: move rest right in small clicks, or EZ.220 / Limb-style chase toward L.",
+                        "RH nock-right: move rest left (in toward the riser), or the opposite EZ.220 move. Check vane clearance.",
                         "Tiny moves only; re-paper after each change.",
                         "Verify with bare shaft, then walk-back centershot."
                     )
@@ -121,7 +121,7 @@ object GuideCatalog {
                 GuideSection(
                     "Paper protocol",
                     listOf(
-                        "6-8 ft paper, relaxed grip.",
+                        "4-6 ft paper, relaxed grip.",
                         "Fix vertical (nock height) before yoke for pure L/R.",
                         "Combo tears: vertical axis first, then horizontal."
                     )
@@ -154,7 +154,7 @@ object GuideCatalog {
                     listOf(
                         "Set draw length and confirm DeadLock cams are locked before shooting.",
                         "Establish nock height and a sensible centershot.",
-                        "Paper at 6-8 ft; diagnose tear.",
+                        "Paper at 4-6 ft; diagnose tear.",
                         "Unlock, slide cam a tiny amount toward correcting L/R, re-lock evenly, re-paper."
                     )
                 ),
@@ -193,7 +193,7 @@ object GuideCatalog {
                     listOf(
                         "Draw length and timing first.",
                         "D-loop + nock height for vertical tears.",
-                        "Paper 6-8 ft; confirm grip.",
+                        "Paper 4-6 ft; confirm grip.",
                         "Adjust S.E.T. in small increments for nock-left / nock-right.",
                         "Re-lock / recheck torque; re-paper."
                     )
