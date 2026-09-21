@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -25,10 +26,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.strobingn.bowtune.data.BrandWizardCatalog
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GuidesListScreen(onOpenGuide: (String) -> Unit) {
+fun GuidesListScreen(
+    onOpenGuide: (String) -> Unit,
+    onOpenWizard: (String) -> Unit = {}
+) {
     Scaffold(
         topBar = { TopAppBar(title = { Text("Brand Tune Guides") }) }
     ) { padding ->
@@ -44,6 +49,35 @@ fun GuidesListScreen(onOpenGuide: (String) -> Unit) {
                     "Manufacturer-specific horizontal tune systems. Pair with Paper Tear + Checklist.",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            item {
+                Text(
+                    "Short guided wizards",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+            items(BrandWizardCatalog.all, key = { "wiz-${it.id}" }) { wizard ->
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onOpenWizard(wizard.id) }
+                ) {
+                    Column(Modifier.padding(14.dp)) {
+                        Text(wizard.brand, style = MaterialTheme.typography.labelLarge)
+                        Text(wizard.title, fontWeight = FontWeight.SemiBold)
+                        Text(wizard.summary, style = MaterialTheme.typography.bodySmall)
+                        Spacer(Modifier.height(8.dp))
+                        Button(onClick = { onOpenWizard(wizard.id) }) { Text("Start wizard") }
+                    }
+                }
+            }
+            item {
+                Text(
+                    "Reference guides",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold
                 )
             }
             items(GuideCatalog.all, key = { it.id }) { guide ->
@@ -74,7 +108,11 @@ fun GuidesListScreen(onOpenGuide: (String) -> Unit) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GuideDetailScreen(guideId: String, onBack: () -> Unit) {
+fun GuideDetailScreen(
+    guideId: String,
+    onBack: () -> Unit,
+    onOpenWizard: (String) -> Unit = {}
+) {
     val guide = GuideCatalog.byId(guideId)
     Scaffold(
         topBar = {
@@ -109,6 +147,10 @@ fun GuideDetailScreen(guideId: String, onBack: () -> Unit) {
                     color = MaterialTheme.colorScheme.primary
                 )
                 Text(guide.summary, style = MaterialTheme.typography.bodyLarge)
+                wizardIdForGuide(guide.id)?.let { wiz ->
+                    Spacer(Modifier.height(8.dp))
+                    Button(onClick = { onOpenWizard(wiz) }) { Text("Start short wizard") }
+                }
             }
             items(guide.sections) { section ->
                 Card(modifier = Modifier.fillMaxWidth()) {
@@ -128,4 +170,12 @@ fun GuideDetailScreen(guideId: String, onBack: () -> Unit) {
             }
         }
     }
+}
+
+private fun wizardIdForGuide(guideId: String): String? = when (guideId) {
+    "pse_ez220" -> "pse_ez220_short"
+    "hoyt_xts" -> "hoyt_xts_short"
+    "bowtech_deadlock" -> "bowtech_deadlock_short"
+    "elite_set" -> "elite_set_short"
+    else -> null
 }

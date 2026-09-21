@@ -13,7 +13,7 @@ Built with **Kotlin**, **Jetpack Compose (Material 3)**, **Navigation**, **DataS
 4. Copy `local.properties.example` → `local.properties` only if needed. Android Studio normally creates `local.properties` with your `sdk.dir`. **Do not commit `local.properties`** (it can contain machine-specific paths).
 5. Select an emulator or device, then click **Run** on the `app` configuration (`com.strobingn.bowtune`).
 
-Minimum SDK: 26 · Target / compile SDK: 35 · Version: **1.1.0** (versionCode 2)
+Minimum SDK: 26 · Target / compile SDK: 35 · Version: **1.2.0** (versionCode 4)
 
 ## Branding / theme
 
@@ -23,10 +23,11 @@ UI is **grayscale only** (blacks, greys, whites). `BowTuneTheme` sets **`dynamic
 
 | Tab | What it does |
 |-----|----------------|
-| **Paper Tear** | Pick a tear type; see ordered fix steps from `PaperTearGuidance` (distance, grip torque, hardware order). |
-| **Checklist** | Six-phase tune checklist; checked state persisted via DataStore (`ChecklistStore`). |
-| **Gear** | Bow setups in Room (`BowSetupDao`) — brand, rest, limb shift, yoke, cams, notes. |
-| **Sessions** | Tune session log in Room (`TuneSessionDao`) — distance, group, notes. **Guided:** Sessions → **LIFT 29.5 — Vertical Tune (90 min)** (Mathews LIFT bare-shaft-high vertical protocol; persists `GuidedTuneSession` + wrap-up summary). |
+| **Home** | Active bow, last tear, checklist %, next due, FOC/spine/KE tools, backup, report, coaching + accessibility. |
+| **Paper Tear** | Tap-zone diagram + Easton CR left/right/4–6 ft steps, TTS, tear history. |
+| **Checklist** | Templates (full / paper / hunting / indoor) with % complete and per-template reset. |
+| **Gear** | Multi-bow profiles (Set active), arrows + FOC, adjustment logbook, side-by-side compare, cam/cable service dates. |
+| **Sessions** | Group / paper / bare / walk-back / broadhead logs with conditions, shareable report, brand short wizards + LIFT 29.5. |
 | **Vision** | On-device camera + ML Kit pose landmarks. **Form** mode: live skeleton overlay, freeze-frame coaching heuristics (shoulder tilt, elbow angles, head/lean), save notes to a `TuneSession`. **Paper tear** mode: capture a still, manually confirm tear type (assist only — no trained tear CV), jump into Paper Tear guidance. |
 | **Guides** | Mathews Limb Shift, PSE EZ.220, Hoyt XTS, Bowtech DeadLock, Elite S.E.T. |
 

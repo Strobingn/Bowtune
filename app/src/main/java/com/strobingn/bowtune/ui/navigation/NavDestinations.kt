@@ -5,6 +5,7 @@ import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Checklist
 import androidx.compose.material.icons.filled.GpsFixed
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.SportsScore
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -14,15 +15,16 @@ sealed class TopLevelDestination(
     val label: String,
     val icon: ImageVector
 ) {
-    data object PaperTear : TopLevelDestination("paper_tear", "Paper Tear", Icons.Filled.GpsFixed)
-    data object Checklist : TopLevelDestination("checklist", "Checklist", Icons.Filled.Checklist)
+    data object Home : TopLevelDestination("home", "Home", Icons.Filled.Home)
+    data object PaperTear : TopLevelDestination("paper_tear", "Tear", Icons.Filled.GpsFixed)
+    data object Checklist : TopLevelDestination("checklist", "List", Icons.Filled.Checklist)
     data object Gear : TopLevelDestination("gear", "Gear", Icons.Filled.Build)
-    data object Sessions : TopLevelDestination("sessions", "Sessions", Icons.Filled.SportsScore)
+    data object Sessions : TopLevelDestination("sessions", "Logs", Icons.Filled.SportsScore)
     data object Vision : TopLevelDestination("vision", "Vision", Icons.Filled.CameraAlt)
     data object Guides : TopLevelDestination("guides", "Guides", Icons.Filled.MenuBook)
 
     companion object {
-        val all = listOf(PaperTear, Checklist, Gear, Sessions, Vision, Guides)
+        val all = listOf(Home, PaperTear, Checklist, Gear, Sessions, Vision, Guides)
     }
 }
 
@@ -35,6 +37,8 @@ object GuideRoutes {
 object SessionRoutes {
     const val LIST = "sessions"
     const val LIFT_VERTICAL = "sessions/lift_vertical"
+    const val WIZARD = "sessions/wizard/{wizardId}"
+    fun wizard(wizardId: String) = "sessions/wizard/$wizardId"
 }
 
 object PaperTearRoutes {

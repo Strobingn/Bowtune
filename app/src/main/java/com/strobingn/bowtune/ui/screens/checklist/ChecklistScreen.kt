@@ -2,6 +2,8 @@ package com.strobingn.bowtune.ui.screens.checklist
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -16,6 +18,7 @@ import androidx.compose.material.icons.filled.RestartAlt
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -35,21 +38,24 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.strobingn.bowtune.BowTuneApp
 import com.strobingn.bowtune.data.ChecklistItem
-import com.strobingn.bowtune.data.TuneChecklistCatalog
+import com.strobingn.bowtune.data.ChecklistTemplates
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun ChecklistScreen() {
     val context = LocalContext.current
-    val store = remember {
-        (context.applicationContext as BowTuneApp).checklistStore
-    }
-    val checked by store.checkedIds().collectAsStateWithLifecycle(initialValue = emptySet())
+    val app = context.applicationContext as BowTuneApp
+    val store = remember { app.checklistStore }
+    val prefs = app.preferences
+    val templateId by prefs.checklistTemplateId.collectAsStateWithLifecycle(ChecklistTemplates.FULL.id)
+    val template = ChecklistTemplates.byId(templateId)
+    val checked by store.checkedIds(templateId).collectAsStateWithLifecycle(emptySet())
     val scope = rememberCoroutineScope()
-    val total = TuneChecklistCatalog.items.size
+    val total = template.items.size
     val done = checked.size
     val progress = if (total == 0) 0f else done.toFloat() / total.toFloat()
+    val percent = (progress * 100).toInt()
 
     Scaffold(
         topBar = {
@@ -57,9 +63,9 @@ fun ChecklistScreen() {
                 title = { Text("Tune Checklist") },
                 actions = {
                     IconButton(
-                        onClick = { scope.launch { store.clearAll() } }
+                        onClick = { scope.launch { store.clearTemplate(templateId) } }
                     ) {
-                        Icon(Icons.Filled.RestartAlt, contentDescription = "Clear all")
+                        Icon(Icons.Filled.RestartAlt, contentDescription = "Reset this template")
                     }
                 }
             )
@@ -73,8 +79,26 @@ fun ChecklistScreen() {
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             item {
+                Text("Templates", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                Spacer(Modifier.height(6.dp))
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    ChecklistTemplates.all.forEach { t ->
+                        FilterChip(
+                            selected = t.id == templateId,
+                            onClick = { scope.launch { prefs.setChecklistTemplateId(t.id) } },
+                            label = { Text(t.name) }
+                        )
+                    }
+                }
+                Spacer(Modifier.height(8.dp))
+                Text(template.blurb, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            item {
                 Text(
-                    "$done of $total steps complete",
+                    "$percent% · $done of $total steps complete",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold
                 )
@@ -85,17 +109,17 @@ fun ChecklistScreen() {
                 )
                 Spacer(Modifier.height(4.dp))
                 Text(
-                    "Progress is saved on this device.",
+                    "Progress is saved per template on this device. Reset clears only ${template.name}.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-            items(TuneChecklistCatalog.items, key = { it.id }) { item ->
+            items(template.items, key = { it.id }) { item ->
                 ChecklistCard(
                     item = item,
                     checked = item.id in checked,
                     onCheckedChange = { value ->
-                        scope.launch { store.setChecked(item.id, value) }
+                        scope.launch { store.setChecked(templateId, item.id, value) }
                     }
                 )
             }

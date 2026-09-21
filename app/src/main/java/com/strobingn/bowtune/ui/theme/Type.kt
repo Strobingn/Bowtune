@@ -6,6 +6,28 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
+fun appTypography(largeText: Boolean): Typography {
+    val factor = if (largeText) 1.22f else 1f
+    fun TextStyle.scaled() = copy(
+        fontSize = (fontSize.value * factor).sp,
+        lineHeight = (lineHeight.value * factor).sp
+    )
+    val base = Typography
+    return Typography(
+        displaySmall = base.displaySmall.scaled(),
+        headlineMedium = base.headlineMedium.scaled(),
+        titleLarge = base.titleLarge.scaled(),
+        titleMedium = base.titleMedium.scaled(),
+        titleSmall = base.titleSmall.scaled(),
+        bodyLarge = base.bodyLarge.scaled(),
+        bodyMedium = base.bodyMedium.scaled(),
+        bodySmall = base.bodySmall.scaled(),
+        labelLarge = base.labelLarge.scaled(),
+        labelMedium = base.labelMedium.scaled(),
+        labelSmall = base.labelSmall.scaled()
+    )
+}
+
 val Typography = Typography(
     displaySmall = TextStyle(
         fontFamily = FontFamily.Default,

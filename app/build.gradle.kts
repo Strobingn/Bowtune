@@ -13,8 +13,8 @@ android {
         applicationId = "com.strobingn.bowtune"
         minSdk = 26
         targetSdk = 35
-        versionCode = 3
-        versionName = "1.1.1"
+        versionCode = 4
+        versionName = "1.2.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         // Phone-only ABIs — drop x86/x86_64 emulator libs from the downloadable APK.

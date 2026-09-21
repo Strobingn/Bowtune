@@ -32,7 +32,11 @@ data class FormAnalysisResult(
  */
 object FormAnalysis {
 
-    fun analyze(pose: Pose, assumeRightHanded: Boolean = true): FormAnalysisResult {
+    fun analyze(
+        pose: Pose,
+        assumeRightHanded: Boolean = true,
+        level: CoachingLevel = CoachingLevel.STANDARD
+    ): FormAnalysisResult {
         val landmarks = pose.allPoseLandmarks.filter { it.inFrameLikelihood >= 0.3f }
         val avgLike = if (landmarks.isEmpty()) 0f else landmarks.map { it.inFrameLikelihood }.average().toFloat()
 
@@ -207,7 +211,22 @@ object FormAnalysis {
             confidenceNote = "Pose looks usable. Tips are heuristics — verify with a coach or video from a consistent angle."
         }
 
-        return FormAnalysisResult(tips, confidenceNote, landmarks.size, avgLike)
+        val leveled = when (level) {
+            CoachingLevel.BEGINNER -> {
+                tips += CoachingTip(
+                    title = "Slow the shot",
+                    detail = "Settle at full draw, check the bubble, then execute. Hardware changes cannot fix a rushed shot.",
+                    severity = CoachingTip.Severity.INFO
+                )
+                tips
+            }
+            CoachingLevel.STANDARD -> tips
+            CoachingLevel.PRO -> tips.filter {
+                it.severity != CoachingTip.Severity.INFO || it.title.contains("alignment", ignoreCase = true)
+            }.ifEmpty { tips.take(2) }
+        }
+
+        return FormAnalysisResult(leveled, confidenceNote, landmarks.size, avgLike)
     }
 
     private fun ok(lm: PoseLandmark?): Boolean =

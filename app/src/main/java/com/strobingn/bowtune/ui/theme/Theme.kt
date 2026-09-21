@@ -41,6 +41,68 @@ private val DarkColors = darkColorScheme(
     scrim = Grey00
 )
 
+private val HighContrastDark = darkColorScheme(
+    primary = ContrastPaper,
+    onPrimary = ContrastInk,
+    primaryContainer = Grey20,
+    onPrimaryContainer = ContrastPaper,
+    secondary = Grey90,
+    onSecondary = ContrastInk,
+    secondaryContainer = Grey15,
+    onSecondaryContainer = ContrastPaper,
+    tertiary = Grey80,
+    onTertiary = ContrastInk,
+    tertiaryContainer = Grey20,
+    onTertiaryContainer = ContrastPaper,
+    error = Grey90,
+    onError = ContrastInk,
+    errorContainer = Grey20,
+    onErrorContainer = ContrastPaper,
+    background = ContrastInk,
+    onBackground = ContrastPaper,
+    surface = ContrastDarkSurface,
+    onSurface = ContrastPaper,
+    surfaceVariant = Grey15,
+    onSurfaceVariant = Grey95,
+    outline = Grey90,
+    outlineVariant = Grey50,
+    inverseSurface = ContrastPaper,
+    inverseOnSurface = ContrastInk,
+    inversePrimary = Grey20,
+    scrim = ContrastInk
+)
+
+private val HighContrastLight = lightColorScheme(
+    primary = ContrastInk,
+    onPrimary = ContrastPaper,
+    primaryContainer = Grey90,
+    onPrimaryContainer = ContrastInk,
+    secondary = Grey20,
+    onSecondary = ContrastPaper,
+    secondaryContainer = Grey95,
+    onSecondaryContainer = ContrastInk,
+    tertiary = Grey30,
+    onTertiary = ContrastPaper,
+    tertiaryContainer = Grey90,
+    onTertiaryContainer = ContrastInk,
+    error = Grey20,
+    onError = ContrastPaper,
+    errorContainer = Grey90,
+    onErrorContainer = ContrastInk,
+    background = ContrastPaper,
+    onBackground = ContrastInk,
+    surface = ContrastLightSurface,
+    onSurface = ContrastInk,
+    surfaceVariant = Grey95,
+    onSurfaceVariant = Grey15,
+    outline = ContrastInk,
+    outlineVariant = Grey40,
+    inverseSurface = ContrastInk,
+    inverseOnSurface = ContrastPaper,
+    inversePrimary = Grey90,
+    scrim = ContrastInk
+)
+
 private val LightColors = lightColorScheme(
     primary = Grey20,
     onPrimary = Grey100,
@@ -77,9 +139,13 @@ fun BowTuneTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     // Disabled by default so Material You cannot inject chromatic colors.
     dynamicColor: Boolean = false,
+    highContrast: Boolean = false,
+    largeText: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
+        highContrast && darkTheme -> HighContrastDark
+        highContrast && !darkTheme -> HighContrastLight
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
@@ -90,7 +156,7 @@ fun BowTuneTheme(
 
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = Typography,
+        typography = appTypography(largeText),
         content = content
     )
 }

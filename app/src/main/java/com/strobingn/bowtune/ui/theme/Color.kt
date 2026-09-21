@@ -21,3 +21,9 @@ val Grey100 = Color(0xFFFFFFFF)
 /** Elevated grey surface for warning / caution cards (still grayscale). */
 val WarningContainerDark = Color(0xFF2E2E2E)
 val WarningContainerLight = Color(0xFFE0E0E0)
+
+/** High-contrast grayscale — still no chromatic accents. */
+val ContrastInk = Color(0xFF000000)
+val ContrastPaper = Color(0xFFFFFFFF)
+val ContrastDarkSurface = Color(0xFF0A0A0A)
+val ContrastLightSurface = Color(0xFFF7F7F7)

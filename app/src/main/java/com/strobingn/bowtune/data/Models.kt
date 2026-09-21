@@ -18,7 +18,14 @@ data class BowSetup(
     // Mathews / PSE friendly optional fields
     val limbShiftSetting: String = "",
     val yokeTwistNotes: String = "",
-    val camSystem: String = ""
+    val camSystem: String = "",
+    val nextTuneDueEpochMs: Long? = null,
+    val iboSpeedFps: String = "",
+    val arrowSpeedFps: String = "",
+    val lastCamCheckEpochMs: Long? = null,
+    val camTimingNotes: String = "",
+    val lastCableCheckEpochMs: Long? = null,
+    val cableStretchNotes: String = ""
 )
 
 @Entity(tableName = "tune_sessions")
@@ -28,7 +35,12 @@ data class TuneSession(
     val distanceYd: String,
     val scoreOrGroup: String = "",
     val notes: String = "",
-    val setupName: String = ""
+    val setupName: String = "",
+    val sessionKind: String = SessionKind.GROUP,
+    val indoorOutdoor: String = "",
+    val windNote: String = "",
+    val tempNote: String = "",
+    val tearType: String = ""
 )
 
 enum class TearType(
@@ -70,8 +82,8 @@ object TuneChecklistCatalog {
         ChecklistItem(
             "paper",
             "3. Paper tune",
-            "Paper tune at 6-8 feet",
-            "Shoot through paper at 6-8 ft (not 10+). Diagnose tear, apply ordered fixes. Watch for grip torque false tears. Prefer rest micro-moves, then yoke/limb-shift for L/R, nock height for H/L."
+            "Paper tune at 4-6 feet",
+            "Shoot through paper at 4-6 ft (Easton start; not 10+). Diagnose tear, apply ordered fixes. Watch for grip torque false tears. Prefer rest micro-moves, then yoke/limb-shift for L/R, nock height for H/L."
         ),
         ChecklistItem(
             "bareshaft",
