@@ -19,6 +19,8 @@ SDK_PACKAGES=(
   "platform-tools"
   "platforms;android-35"
   "build-tools;35.0.0"
+  # AGP 8.7.2 still resolves Build-Tools 34 during assembleDebug.
+  "build-tools;34.0.0"
 )
 # Same source CI uses when gradle-wrapper.jar is omitted from the tree.
 WRAPPER_JAR_URL="${WRAPPER_JAR_URL:-https://github.com/gradle/gradle/raw/v8.9.0/gradle/wrapper/gradle-wrapper.jar}"
