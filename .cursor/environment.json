@@ -1,0 +1,4 @@
+{
+  "name": "Bow Tune",
+  "install": "bash .cursor/install.sh"
+}
