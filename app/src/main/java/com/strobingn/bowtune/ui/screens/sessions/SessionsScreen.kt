@@ -58,8 +58,11 @@ import com.strobingn.bowtune.data.TuneHints
 import com.strobingn.bowtune.data.TuneSession
 import com.strobingn.bowtune.data.advanced.AdvancedTuneIds
 import com.strobingn.bowtune.data.toDoubleOrNullLenient
+import com.strobingn.bowtune.ui.common.BareAndBroadheadTargetPlot
 import com.strobingn.bowtune.ui.common.EmptyState
+import com.strobingn.bowtune.ui.common.GroupTrendChartCard
 import com.strobingn.bowtune.ui.common.HintCard
+import com.strobingn.bowtune.ui.common.WalkBackPatternDiagram
 import com.strobingn.bowtune.ui.common.formatWhen
 import com.strobingn.bowtune.ui.common.shareText
 import kotlinx.coroutines.launch
@@ -70,7 +73,8 @@ fun SessionsScreen(
     onOpenLiftVerticalTune: () -> Unit = {},
     onOpenWizard: (String) -> Unit = {},
     onOpenAdvanced: (String) -> Unit = {},
-    onOpenAdvancedLibrary: () -> Unit = {}
+    onOpenAdvancedLibrary: () -> Unit = {},
+    onOpenGroupCamera: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val app = context.applicationContext as BowTuneApp
@@ -124,6 +128,12 @@ fun SessionsScreen(
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
+            item {
+                GroupTrendChartCard(
+                    sessions = sessions,
+                    onOpenGroupCamera = onOpenGroupCamera
+                )
+            }
             item {
                 WizardCard(
                     title = "Advanced Tuning library",
@@ -320,10 +330,21 @@ private fun SessionEditorDialog(
                     OutlinedTextField(tearType, { tearType = it }, label = { Text("Tear type") }, singleLine = true, modifier = Modifier.fillMaxWidth())
                 }
                 if (kind == SessionKind.BARE_SHAFT) {
-                    OutlinedTextField(bareV, { bareV = it }, label = { Text("Bare vs fletched high/low (in)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                    BareAndBroadheadTargetPlot(
+                        verticalHighIn = bareV.toDoubleOrNullLenient(),
+                        horizontalLeftIn = bareH.toDoubleOrNullLenient(),
+                        toleranceIn = 0.75,
+                        centerLabel = "Fletched @20yd",
+                        impactLabel = "Bare shaft impact"
+                    )
+                    OutlinedTextField(bareV, { bareV = it }, label = { Text("Bare vs fletched high/low (in, +high)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
                     OutlinedTextField(bareH, { bareH = it }, label = { Text("Bare vs fletched left/right (in, +left)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
                 }
                 if (kind == SessionKind.WALKBACK) {
+                    WalkBackPatternDiagram(
+                        errorGrowsWithDistance = fan,
+                        wholeLineOffset = offset
+                    )
                     Text("Did the error grow with distance?")
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         FilterChip(selected = fan == true, onClick = { fan = true }, label = { Text("Fan / grows") })
@@ -336,8 +357,15 @@ private fun SessionEditorDialog(
                     }
                 }
                 if (kind == SessionKind.BROADHEAD) {
+                    BareAndBroadheadTargetPlot(
+                        verticalHighIn = bhV.toDoubleOrNullLenient(),
+                        horizontalLeftIn = bhH.toDoubleOrNullLenient(),
+                        toleranceIn = 1.0,
+                        centerLabel = "Field points",
+                        impactLabel = "Broadhead impact"
+                    )
                     OutlinedTextField(bhH, { bhH = it }, label = { Text("BH vs field left/right (in, +left)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-                    OutlinedTextField(bhV, { bhV = it }, label = { Text("BH vs field high/low (in)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                    OutlinedTextField(bhV, { bhV = it }, label = { Text("BH vs field high/low (in, +high)") }, singleLine = true, modifier = Modifier.fillMaxWidth())
                 }
                 hint?.let { HintCard(it) }
                 when (kind) {

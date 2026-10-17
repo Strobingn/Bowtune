@@ -47,6 +47,7 @@ import com.strobingn.bowtune.data.advanced.AdvancedSection
 import com.strobingn.bowtune.data.advanced.AdvancedSectionKind
 import com.strobingn.bowtune.data.advanced.AdvancedTuneCatalog
 import com.strobingn.bowtune.data.advanced.TuneWalkStep
+import com.strobingn.bowtune.ui.common.TuningConceptDiagram
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -226,6 +227,9 @@ fun AdvancedTuneDetailScreen(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+            }
+            item {
+                TuningConceptDiagram(guideId = guide.id)
             }
             item {
                 Card(

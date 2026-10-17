@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import com.strobingn.bowtune.data.BrandWizardCatalog
 import com.strobingn.bowtune.data.advanced.AdvancedTuneCatalog
 import com.strobingn.bowtune.data.advanced.AdvancedTuneIds
+import com.strobingn.bowtune.ui.common.TuningConceptDiagram
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -196,6 +197,9 @@ fun GuideDetailScreen(
                     Spacer(Modifier.height(8.dp))
                     Button(onClick = { onOpenWizard(wiz) }) { Text("Start short wizard") }
                 }
+            }
+            item {
+                TuningConceptDiagram(guideId = guide.id)
             }
             items(guide.sections) { section ->
                 Card(modifier = Modifier.fillMaxWidth()) {

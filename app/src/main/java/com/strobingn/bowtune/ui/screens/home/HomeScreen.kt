@@ -20,6 +20,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Calculate
+import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Button
@@ -56,9 +57,13 @@ import com.strobingn.bowtune.data.CoachingLevel
 import com.strobingn.bowtune.data.ReportBuilder
 import com.strobingn.bowtune.data.TearType
 import com.strobingn.bowtune.data.toDoubleOrNullLenient
+import com.strobingn.bowtune.ui.common.ArrowFocDiagram
+import com.strobingn.bowtune.ui.common.BallisticEnergyGauge
+import com.strobingn.bowtune.ui.common.GroupTrendChartCard
 import com.strobingn.bowtune.ui.common.HintCard
 import com.strobingn.bowtune.ui.common.LabeledField
 import com.strobingn.bowtune.ui.common.SectionLabel
+import com.strobingn.bowtune.ui.common.SpineSpectrumDiagram
 import com.strobingn.bowtune.ui.common.formatDay
 import com.strobingn.bowtune.ui.common.formatWhen
 import com.strobingn.bowtune.ui.common.shareText
@@ -75,7 +80,8 @@ fun HomeScreen(
     onOpenGear: () -> Unit,
     onOpenChecklist: () -> Unit,
     onOpenSessions: () -> Unit,
-    onOpenAdvancedLibrary: () -> Unit = {}
+    onOpenAdvancedLibrary: () -> Unit = {},
+    onOpenGroupCamera: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val app = context.applicationContext as BowTuneApp
@@ -222,6 +228,12 @@ fun HomeScreen(
                     )
                 }
                 item {
+                    GroupTrendChartCard(
+                        sessions = sessions,
+                        onOpenGroupCamera = onOpenGroupCamera
+                    )
+                }
+                item {
                     DashCard(
                         title = "Last session",
                         body = sessions.firstOrNull()?.let {
@@ -243,6 +255,12 @@ fun HomeScreen(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
+                        FilterChip(
+                            selected = false,
+                            onClick = onOpenGroupCamera,
+                            label = { Text("Group Cam") },
+                            leadingIcon = { Icon(Icons.Filled.CameraAlt, contentDescription = null) }
+                        )
                         listOf(
                             "FOC" to HomeTool.FOC,
                             "Spine" to HomeTool.SPINE,
@@ -277,7 +295,10 @@ fun HomeScreen(
                 )
             }
             HomeTool.KE -> ToolPane(padding) {
-                EnergyTool(defaultSpeed = active?.arrowSpeedFps?.ifBlank { active.iboSpeedFps }.orEmpty())
+                EnergyTool(
+                    defaultSpeed = active?.arrowSpeedFps?.ifBlank { active.iboSpeedFps }.orEmpty(),
+                    defaultDw = active?.drawWeightLbs.orEmpty()
+                )
             }
             HomeTool.BACKUP -> ToolPane(padding) {
                 Text("Export writes a JSON snapshot of setups, sessions, tears, arrows, logs, checklist, and preferences. Restore replaces local data.")
@@ -410,40 +431,52 @@ private fun FocTool(sample: com.strobingn.bowtune.data.ArrowShaft?) {
         vane.toDoubleOrNullLenient(),
         wrap.toDoubleOrNullLenient()
     )
+    ArrowFocDiagram(
+        lengthIn = length.toDoubleOrNullLenient(),
+        result = result
+    )
+    HintCard(result.note)
     LabeledField(length, { length = it }, "Arrow length (in)")
-    LabeledField(balance, { balance = it }, "Balance point from nock (in)")
-    LabeledField(shaft, { shaft = it }, "Shaft grains (or GPI × length)")
+    LabeledField(balance, { balance = it }, "Balance point from nock (in, optional if components filled)")
+    LabeledField(shaft, { shaft = it }, "Shaft grains (or GPI if ≤30)")
     LabeledField(point, { point = it }, "Point (gr)")
     LabeledField(insert, { insert = it }, "Insert (gr)")
     LabeledField(nock, { nock = it }, "Nock (gr)")
     LabeledField(vane, { vane = it }, "Vanes total (gr)")
     LabeledField(wrap, { wrap = it }, "Wrap (gr)")
-    HintCard(result.note)
 }
 
 @Composable
 private fun SpineTool(defaultDw: String, defaultLen: String) {
-    var dw by remember { mutableStateOf(defaultDw) }
-    var length by remember { mutableStateOf(defaultLen) }
+    var dw by remember { mutableStateOf(defaultDw.ifBlank { "70" }) }
+    var length by remember { mutableStateOf(defaultLen.ifBlank { "28.5" }) }
     var point by remember { mutableStateOf("100") }
     val result = Calculators.spine(
         dw.toDoubleOrNullLenient(),
         length.toDoubleOrNullLenient(),
         point.toDoubleOrNullLenient()
     )
+    SpineSpectrumDiagram(result = result)
+    Text(result.suggestedRange, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
     LabeledField(dw, { dw = it }, "Draw weight (lb)")
     LabeledField(length, { length = it }, "Arrow length (in)")
-    LabeledField(point, { point = it }, "Point weight (gr)")
-    Text(result.suggestedRange, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+    LabeledField(point, { point = it }, "Point + insert front weight (gr)")
     result.notes.forEach { Text("• $it", style = MaterialTheme.typography.bodySmall) }
 }
 
 @Composable
-private fun EnergyTool(defaultSpeed: String) {
-    var grains by remember { mutableStateOf("400") }
-    var fps by remember { mutableStateOf(defaultSpeed) }
-    val result = Calculators.energy(grains.toDoubleOrNullLenient(), fps.toDoubleOrNullLenient())
+private fun EnergyTool(defaultSpeed: String, defaultDw: String = "") {
+    var grains by remember { mutableStateOf("425") }
+    var fps by remember { mutableStateOf(defaultSpeed.ifBlank { "285" }) }
+    var dw by remember { mutableStateOf(defaultDw) }
+    val result = Calculators.energy(
+        grains = grains.toDoubleOrNullLenient(),
+        speedFps = fps.toDoubleOrNullLenient(),
+        drawWeightLbs = dw.toDoubleOrNullLenient()
+    )
+    BallisticEnergyGauge(result = result)
+    HintCard(result.note)
     LabeledField(grains, { grains = it }, "Finished arrow (gr)")
     LabeledField(fps, { fps = it }, "Speed (fps)")
-    HintCard(result.note)
+    LabeledField(dw, { dw = it }, "Draw weight (lb, optional for GPP safety check)")
 }

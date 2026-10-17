@@ -191,6 +191,10 @@ fun PaperTearScreen(
                     selected = tear,
                     onSelect = { selected = it.name }
                 )
+                Spacer(Modifier.height(10.dp))
+                TearCorrectionVisualCard(
+                    tear = tear
+                )
             }
             item {
                 FlowRow(

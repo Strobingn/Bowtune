@@ -43,6 +43,8 @@ import com.strobingn.bowtune.BowTuneApp
 import com.strobingn.bowtune.data.GuidedTuneSession
 import com.strobingn.bowtune.data.LiftVerticalTunePlan
 import com.strobingn.bowtune.data.TuneSession
+import com.strobingn.bowtune.data.toDoubleOrNullLenient
+import com.strobingn.bowtune.ui.common.BareAndBroadheadTargetPlot
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 
@@ -266,6 +268,13 @@ fun LiftVerticalTuneSessionScreen(
                     "All four fields required to complete and save.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                BareAndBroadheadTargetPlot(
+                    verticalHighIn = bareShaftHl20.toDoubleOrNullLenient(),
+                    horizontalLeftIn = bareShaftLr20.toDoubleOrNullLenient(),
+                    toleranceIn = 0.75,
+                    centerLabel = "Fletched @20yd",
+                    impactLabel = "Bare shaft @20yd"
                 )
                 OutlinedTextField(
                     bareShaftHl20,

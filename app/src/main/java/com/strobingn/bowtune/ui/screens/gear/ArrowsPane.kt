@@ -38,6 +38,7 @@ import com.strobingn.bowtune.data.ArrowShaft
 import com.strobingn.bowtune.data.BowSetup
 import com.strobingn.bowtune.data.Calculators
 import com.strobingn.bowtune.data.toDoubleOrNullLenient
+import com.strobingn.bowtune.ui.common.ArrowFocDiagram
 import com.strobingn.bowtune.ui.common.EmptyState
 import com.strobingn.bowtune.ui.common.HintCard
 import com.strobingn.bowtune.ui.common.LabeledField
@@ -197,6 +198,10 @@ private fun ArrowEditor(
                         }
                     }
                 }
+                ArrowFocDiagram(
+                    lengthIn = length.toDoubleOrNullLenient(),
+                    result = foc
+                )
                 HintCard(foc.note)
             }
         },
