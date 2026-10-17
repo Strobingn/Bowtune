@@ -28,7 +28,7 @@ UI is **grayscale only** (blacks, greys, whites). `BowTuneTheme` sets **`dynamic
 | **Checklist** | Templates (full / paper / hunting / indoor) with % complete and per-template reset. |
 | **Gear** | Multi-bow profiles (Set active), arrows + FOC, adjustment logbook, side-by-side compare, cam/cable service dates. |
 | **Sessions** | Group / paper / bare / walk-back / broadhead logs with conditions, shareable report, brand short wizards + LIFT 29.5. |
-| **Vision** | On-device camera + ML Kit pose landmarks. **Form** mode: live skeleton overlay, freeze-frame coaching heuristics (shoulder tilt, elbow angles, head/lean), save notes to a `TuneSession`. **Paper tear** mode: capture a still, manually confirm tear type (assist only — no trained tear CV), jump into Paper Tear guidance. |
+| **Vision** | On-device camera tools. **Form**: pose overlay and coaching heuristics. **Group**: photograph a target, calibrate against a known in-plane length, mark arrow centers, calculate the widest center-to-center group, and record it in Sessions. **Tear**: capture a still and manually confirm tear type. |
 | **Guides** | **Advanced Tuning library** (bare shaft walkthroughs, fletched, nock clocking, walk-back, French, planing, broadheads, CR paper depth, torque, yoke/Limb Shift, tiller/timing, dynamic spine) plus Mathews Limb Shift, PSE EZ.220, Hoyt XTS, Bowtech DeadLock, Elite S.E.T. |
 
 ## Shot Vision notes
@@ -36,6 +36,7 @@ UI is **grayscale only** (blacks, greys, whites). `BowTuneTheme` sets **`dynamic
 - Requires **CAMERA** permission (runtime prompt).
 - Pose works best with decent lighting and a **side-ish / 3⁄4** angle at full-draw-ish stance.
 - Coaching tips are **heuristics**, not a coach — low-confidence states are called out in the UI.
+- Group measurement uses manual center marks and a known reference in the target plane. Keep the camera square to the target to reduce perspective error.
 - Paper-tear photo flow is labeled **assist**; you confirm the tear type yourself.
 
 ## Download a debug APK (GitHub Actions)

@@ -34,21 +34,34 @@ object Calculators {
         vaneGr: Double? = null,
         wrapGr: Double? = null
     ): FocResult {
-        val parts = listOfNotNull(shaftGr, pointGr, insertGr, nockGr, vaneGr, wrapGr)
+        val weights = listOf(shaftGr, pointGr, insertGr, nockGr, vaneGr, wrapGr)
+        val parts = weights.filterNotNull()
         val total = if (parts.isEmpty()) null else parts.sum()
-        if (lengthIn == null || lengthIn <= 0.0 || balanceFromNockIn == null) {
+        if (weights.any { it != null && (!it.isFinite() || it < 0.0) }) {
+            return FocResult(null, null, "Component weights must be zero or greater.")
+        }
+        if (lengthIn == null || !lengthIn.isFinite() || lengthIn <= 0.0 ||
+            balanceFromNockIn == null || !balanceFromNockIn.isFinite()
+        ) {
             return FocResult(
                 focPercent = null,
                 totalGrains = total,
                 note = "Enter arrow length and balance point measured from the nock throat."
             )
         }
+        if (balanceFromNockIn !in 0.0..lengthIn) {
+            return FocResult(
+                focPercent = null,
+                totalGrains = total,
+                note = "Balance point must fall between the nock throat and the end of the arrow."
+            )
+        }
         val foc = ((balanceFromNockIn - (lengthIn / 2.0)) / lengthIn) * 100.0
         val band = when {
-            foc < 7 -> "Low FOC — fine for some target setups; hunting usually wants more."
-            foc < 11 -> "Typical target / 3D FOC band."
-            foc < 16 -> "Typical hunting FOC band."
-            else -> "High FOC — steeper trajectory and more wind drift; confirm you still like the flight."
+            foc < 7 -> "Low FOC — verify stable flight before changing components."
+            foc < 11 -> "Common target / 3D starting range."
+            foc < 16 -> "Common hunting starting range."
+            else -> "High FOC — the heavier front can lower speed; verify trajectory and broadhead flight."
         }
         val grains = total?.let { " Component total ${it.trim1()} gr." } ?: ""
         return FocResult(
@@ -67,7 +80,7 @@ object Calculators {
         arrowLengthIn: Double?,
         pointWeightGr: Double?
     ): SpineResult {
-        if (drawWeightLbs == null || drawWeightLbs < 20 || drawWeightLbs > 90) {
+        if (drawWeightLbs == null || !drawWeightLbs.isFinite() || drawWeightLbs < 20 || drawWeightLbs > 90) {
             return SpineResult(
                 "Enter draw weight (20–90 lb)",
                 listOf("Use peak holding/draw weight on the limbs, not advertised IBO.")
@@ -75,6 +88,18 @@ object Calculators {
         }
         val length = arrowLengthIn ?: 28.0
         val point = pointWeightGr ?: 100.0
+        if (!length.isFinite() || length !in 20.0..36.0) {
+            return SpineResult(
+                "Enter arrow length (20–36 in)",
+                listOf("Use carbon-to-carbon shaft length, not draw length.")
+            )
+        }
+        if (!point.isFinite() || point !in 50.0..300.0) {
+            return SpineResult(
+                "Enter point weight (50–300 gr)",
+                listOf("Use total point-end weight if your shaft chart calls for it.")
+            )
+        }
 
         val base = when {
             drawWeightLbs < 40 -> 700 to 600
@@ -125,7 +150,7 @@ object Calculators {
         }
 
         notes += "RH release paper: leftover left tear after rest-right / Limb Shift L often means weak spine or too much DW."
-        notes += "This is a starting range, not a brand chart. Confirm with Easton/manufacturer tables and paper at 4-6 ft."
+        notes += "This estimate cannot replace a shaft maker's chart, which accounts for bow speed, cam aggressiveness, and point system. Verify there first, then confirm in flight."
         if (arrowLengthIn == null) notes += "No length entered — assumed 28\"."
         if (pointWeightGr == null) notes += "No point weight entered — assumed 100 gr."
 
@@ -140,7 +165,9 @@ object Calculators {
      * Momentum (slug·ft/s) = grains * fps / 225218
      */
     fun energy(arrowGrains: Double?, speedFps: Double?): EnergyResult {
-        if (arrowGrains == null || arrowGrains <= 0 || speedFps == null || speedFps <= 0) {
+        if (arrowGrains == null || !arrowGrains.isFinite() || arrowGrains <= 0 ||
+            speedFps == null || !speedFps.isFinite() || speedFps <= 0
+        ) {
             return EnergyResult(
                 null,
                 null,
@@ -150,10 +177,10 @@ object Calculators {
         val ke = (arrowGrains * speedFps * speedFps) / 450240.0
         val mom = (arrowGrains * speedFps) / 225218.0
         val keBand = when {
-            ke < 25 -> "Light target / small game energy."
-            ke < 40 -> "Common deer-class KE for many states; check local regs."
-            ke < 55 -> "Elk-class KE for many setups."
-            else -> "High KE — watch trajectory and bow comfort."
+            ke < 25 -> "Low energy; confirm the arrow and setup are suitable for the intended use."
+            ke < 40 -> "Moderate energy. Penetration also depends on momentum, broadhead, and shot placement."
+            ke < 55 -> "Strong energy for many hunting setups; check local equipment rules."
+            else -> "High energy. Confirm arrow weight stays within the bow maker's minimum grains-per-pound limit."
         }
         return EnergyResult(
             kineticFtLbs = ke,

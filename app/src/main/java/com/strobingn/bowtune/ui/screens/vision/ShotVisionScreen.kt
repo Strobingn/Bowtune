@@ -2,7 +2,11 @@ package com.strobingn.bowtune.ui.screens.vision
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.Matrix
 import android.graphics.Paint
+import android.media.ExifInterface
 import android.util.Size
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -36,6 +40,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Save
+import androidx.compose.material.icons.filled.Undo
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -46,6 +52,7 @@ import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
@@ -67,6 +74,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardOptions
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
@@ -82,6 +91,8 @@ import com.strobingn.bowtune.data.CoachingLevel
 import com.strobingn.bowtune.data.CoachingTip
 import com.strobingn.bowtune.data.FormAnalysis
 import com.strobingn.bowtune.data.FormAnalysisResult
+import com.strobingn.bowtune.data.GroupMeasurement
+import com.strobingn.bowtune.data.MeasurementPoint
 import com.strobingn.bowtune.data.PaperTearGuidance
 import com.strobingn.bowtune.data.PaperTearLog
 import com.strobingn.bowtune.data.SessionKind
@@ -97,7 +108,7 @@ import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.launch
 
-private enum class VisionMode { FORM, PAPER_TEAR }
+private enum class VisionMode { FORM, GROUP, PAPER_TEAR }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -136,6 +147,13 @@ fun ShotVisionScreen(
     var suggestedTear by remember { mutableStateOf(TearType.BULLET) }
     var confirmedTear by remember { mutableStateOf<TearType?>(null) }
     var imageCapture by remember { mutableStateOf<ImageCapture?>(null) }
+    var groupPhoto by remember { mutableStateOf<Bitmap?>(null) }
+    var groupPhotoFile by remember { mutableStateOf<File?>(null) }
+    var referencePoints by remember { mutableStateOf(emptyList<MeasurementPoint>()) }
+    var arrowCenters by remember { mutableStateOf(emptyList<MeasurementPoint>()) }
+    var referenceInches by remember { mutableStateOf("4") }
+    var groupDistanceYd by remember { mutableStateOf("20") }
+    var groupSavedMessage by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(Unit) {
         if (!hasCamPermission) permissionLauncher.launch(Manifest.permission.CAMERA)
@@ -160,8 +178,19 @@ fun ShotVisionScreen(
                         frozenAnalysis = null
                         savedMsg = null
                     },
-                    shape = SegmentedButtonDefaults.itemShape(0, 2)
+                    shape = SegmentedButtonDefaults.itemShape(0, 3)
                 ) { Text("Form") }
+                SegmentedButton(
+                    selected = mode == VisionMode.GROUP,
+                    onClick = {
+                        mode = VisionMode.GROUP
+                        paperCaptured = false
+                        confirmedTear = null
+                        frozenAnalysis = null
+                        savedMsg = null
+                    },
+                    shape = SegmentedButtonDefaults.itemShape(1, 3)
+                ) { Text("Group") }
                 SegmentedButton(
                     selected = mode == VisionMode.PAPER_TEAR,
                     onClick = {
@@ -169,8 +198,8 @@ fun ShotVisionScreen(
                         frozenAnalysis = null
                         savedMsg = null
                     },
-                    shape = SegmentedButtonDefaults.itemShape(1, 2)
-                ) { Text("Paper tear") }
+                    shape = SegmentedButtonDefaults.itemShape(2, 3)
+                ) { Text("Tear") }
             }
 
             Spacer(Modifier.height(8.dp))
@@ -188,16 +217,39 @@ fun ShotVisionScreen(
                     .weight(1f)
                     .background(Grey20)
             ) {
-                CameraPosePreview(
-                    enablePose = mode == VisionMode.FORM && frozenAnalysis == null,
-                    onPose = { pose, w, h ->
-                        livePose = pose
-                        imageWidth = w
-                        imageHeight = h
-                    },
-                    onImageCaptureReady = { imageCapture = it },
-                    modifier = Modifier.fillMaxSize()
-                )
+                val photo = groupPhoto
+                if (mode == VisionMode.GROUP && photo != null) {
+                    GroupPhotoOverlay(
+                        bitmap = photo,
+                        referencePoints = referencePoints,
+                        arrowCenters = arrowCenters,
+                        result = GroupMeasurement.calculate(
+                            referencePoints,
+                            referenceInches.toDoubleOrNull(),
+                            arrowCenters
+                        ),
+                        onImageTap = { point ->
+                            if (referencePoints.size < 2) {
+                                referencePoints = referencePoints + point
+                            } else {
+                                arrowCenters = arrowCenters + point
+                            }
+                            groupSavedMessage = null
+                        },
+                        modifier = Modifier.fillMaxSize()
+                    )
+                } else {
+                    CameraPosePreview(
+                        enablePose = mode == VisionMode.FORM && frozenAnalysis == null,
+                        onPose = { pose, w, h ->
+                            livePose = pose
+                            imageWidth = w
+                            imageHeight = h
+                        },
+                        onImageCaptureReady = { imageCapture = it },
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
                 if (mode == VisionMode.FORM && frozenAnalysis == null) {
                     PoseSkeletonOverlay(
                         pose = livePose,
@@ -205,6 +257,9 @@ fun ShotVisionScreen(
                         sourceHeight = imageHeight,
                         modifier = Modifier.fillMaxSize()
                     )
+                }
+                if (mode == VisionMode.GROUP && photo == null) {
+                    GroupCameraReticle(Modifier.fillMaxSize())
                 }
                 if (mode == VisionMode.PAPER_TEAR && paperCaptured) {
                     Box(
@@ -291,6 +346,94 @@ fun ShotVisionScreen(
                         }
                     }
                 )
+                VisionMode.GROUP -> {
+                    val result = GroupMeasurement.calculate(
+                        referencePoints,
+                        referenceInches.toDoubleOrNull(),
+                        arrowCenters
+                    )
+                    GroupBottomPanel(
+                        captured = groupPhoto != null,
+                        referenceInches = referenceInches,
+                        distanceYd = groupDistanceYd,
+                        referencePointCount = referencePoints.size,
+                        arrowCount = arrowCenters.size,
+                        groupSizeInches = result?.sizeInches,
+                        savedMessage = groupSavedMessage,
+                        onReferenceChange = {
+                            referenceInches = it
+                            groupSavedMessage = null
+                        },
+                        onDistanceChange = { groupDistanceYd = it },
+                        onCapture = {
+                            val capture = imageCapture ?: return@GroupBottomPanel
+                            val directory = File(context.filesDir, "group_photos").apply { mkdirs() }
+                            val file = File(directory, "group_${System.currentTimeMillis()}.jpg")
+                            capture.takePicture(
+                                ImageCapture.OutputFileOptions.Builder(file).build(),
+                                ContextCompat.getMainExecutor(context),
+                                object : ImageCapture.OnImageSavedCallback {
+                                    override fun onImageSaved(output: ImageCapture.OutputFileResults) {
+                                        val decoded = decodeOrientedBitmap(file)
+                                        if (decoded != null) {
+                                            groupPhoto = decoded
+                                            groupPhotoFile = file
+                                            referencePoints = emptyList()
+                                            arrowCenters = emptyList()
+                                            groupSavedMessage = null
+                                        } else {
+                                            file.delete()
+                                            groupSavedMessage = "Could not read photo — try again"
+                                        }
+                                    }
+
+                                    override fun onError(exception: ImageCaptureException) {
+                                        groupSavedMessage = "Capture failed — try again"
+                                    }
+                                }
+                            )
+                        },
+                        onUndo = {
+                            when {
+                                arrowCenters.isNotEmpty() -> arrowCenters = arrowCenters.dropLast(1)
+                                referencePoints.isNotEmpty() -> referencePoints = referencePoints.dropLast(1)
+                            }
+                            groupSavedMessage = null
+                        },
+                        onRetake = {
+                            groupPhotoFile?.delete()
+                            groupPhoto?.recycle()
+                            groupPhoto = null
+                            groupPhotoFile = null
+                            referencePoints = emptyList()
+                            arrowCenters = emptyList()
+                            groupSavedMessage = null
+                        },
+                        onSave = {
+                            val measured = result ?: return@GroupBottomPanel
+                            scope.launch {
+                                dao.upsert(
+                                    TuneSession(
+                                        dateEpochMs = System.currentTimeMillis(),
+                                        distanceYd = groupDistanceYd.trim().ifBlank { "—" },
+                                        scoreOrGroup = "${measured.sizeInches.format2()} in",
+                                        notes = buildString {
+                                            append("Camera-measured center-to-center group")
+                                            append(" · ${arrowCenters.size} arrows")
+                                            append(" · ${referenceInches.trim()} in reference")
+                                            groupPhotoFile?.let { append("\nOn-device photo: ${it.name}") }
+                                            append("\nManual center marks; keep the reference in the target plane.")
+                                        },
+                                        setupName = activeName.ifBlank { "Shot Vision" },
+                                        sessionKind = SessionKind.GROUP
+                                    )
+                                )
+                                groupSavedMessage = "Recorded in Sessions"
+                                context.tickHaptic(hapticOn)
+                            }
+                        }
+                    )
+                }
                 VisionMode.PAPER_TEAR -> PaperTearBottomPanel(
                     captured = paperCaptured,
                     suggested = suggestedTear,
@@ -460,6 +603,134 @@ private fun CoachingCard(tip: CoachingTip, dark: Boolean) {
             }
             Spacer(Modifier.height(4.dp))
             Text(tip.detail, style = MaterialTheme.typography.bodySmall)
+        }
+    }
+}
+
+@Composable
+private fun GroupBottomPanel(
+    captured: Boolean,
+    referenceInches: String,
+    distanceYd: String,
+    referencePointCount: Int,
+    arrowCount: Int,
+    groupSizeInches: Double?,
+    savedMessage: String?,
+    onReferenceChange: (String) -> Unit,
+    onDistanceChange: (String) -> Unit,
+    onCapture: () -> Unit,
+    onUndo: () -> Unit,
+    onRetake: () -> Unit,
+    onSave: () -> Unit
+) {
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .height(250.dp)
+            .verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(7.dp)
+    ) {
+        if (!captured) {
+            Text(
+                "Measure an arrow group",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                "Put a ruler or known target-ring diameter in the same plane as the arrows. Keep the camera square to the target.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(
+                    value = referenceInches,
+                    onValueChange = onReferenceChange,
+                    label = { Text("Reference (in)") },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    modifier = Modifier.weight(1f)
+                )
+                OutlinedTextField(
+                    value = distanceYd,
+                    onValueChange = onDistanceChange,
+                    label = { Text("Distance (yd)") },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    modifier = Modifier.weight(1f)
+                )
+            }
+            Button(
+                onClick = onCapture,
+                enabled = referenceInches.toDoubleOrNull()?.let { it > 0.0 } == true,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(Icons.Filled.CameraAlt, contentDescription = null)
+                Spacer(Modifier.padding(4.dp))
+                Text("Capture arrow group")
+            }
+        } else {
+            val instruction = when {
+                referencePointCount < 2 ->
+                    "1 · Tap both ends of the $referenceInches in reference"
+                arrowCount < 2 ->
+                    "2 · Tap the center of every arrow hole (${arrowCount} marked)"
+                else ->
+                    "Group uses the widest pair of $arrowCount center marks"
+            }
+            Text(instruction, fontWeight = FontWeight.SemiBold)
+            groupSizeInches?.let { size ->
+                Card(
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column {
+                            Text("CENTER-TO-CENTER", style = MaterialTheme.typography.labelSmall)
+                            Text(
+                                "${size.format2()} in",
+                                style = MaterialTheme.typography.headlineMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                        Text("$arrowCount arrows", style = MaterialTheme.typography.labelLarge)
+                    }
+                }
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedButton(
+                    onClick = onUndo,
+                    enabled = referencePointCount + arrowCount > 0,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Icon(Icons.Filled.Undo, contentDescription = null)
+                    Text(" Undo")
+                }
+                OutlinedButton(onClick = onRetake, modifier = Modifier.weight(1f)) {
+                    Text("Retake")
+                }
+                Button(
+                    onClick = onSave,
+                    enabled = groupSizeInches != null,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Icon(Icons.Filled.Save, contentDescription = null)
+                    Text(" Save")
+                }
+            }
+            savedMessage?.let {
+                Text(it, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
+            }
+            Text(
+                "Manual marks avoid pretending the camera can reliably identify every shaft. Perspective or a reference off the target face will distort the result.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }
@@ -698,3 +969,48 @@ private fun PoseSkeletonOverlay(
         }
     }
 }
+
+private fun decodeOrientedBitmap(file: File): Bitmap? {
+    val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+    BitmapFactory.decodeFile(file.absolutePath, bounds)
+    if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return null
+
+    var sampleSize = 1
+    while (bounds.outWidth / sampleSize > 2048 || bounds.outHeight / sampleSize > 2048) {
+        sampleSize *= 2
+    }
+    val bitmap = BitmapFactory.decodeFile(
+        file.absolutePath,
+        BitmapFactory.Options().apply { inSampleSize = sampleSize }
+    ) ?: return null
+
+    val rotation = runCatching {
+        when (
+            ExifInterface(file.absolutePath).getAttributeInt(
+                ExifInterface.TAG_ORIENTATION,
+                ExifInterface.ORIENTATION_NORMAL
+            )
+        ) {
+            ExifInterface.ORIENTATION_ROTATE_90 -> 90f
+            ExifInterface.ORIENTATION_ROTATE_180 -> 180f
+            ExifInterface.ORIENTATION_ROTATE_270 -> 270f
+            else -> 0f
+        }
+    }.getOrDefault(0f)
+    if (rotation == 0f) return bitmap
+
+    val rotated = Bitmap.createBitmap(
+        bitmap,
+        0,
+        0,
+        bitmap.width,
+        bitmap.height,
+        Matrix().apply { postRotate(rotation) },
+        true
+    )
+    if (rotated !== bitmap) bitmap.recycle()
+    return rotated
+}
+
+private fun Double.format2(): String =
+    String.format(java.util.Locale.US, "%.2f", this)

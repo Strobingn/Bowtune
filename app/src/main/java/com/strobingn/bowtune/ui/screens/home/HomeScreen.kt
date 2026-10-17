@@ -394,7 +394,7 @@ private fun PrefSwitch(label: String, checked: Boolean, onChange: (Boolean) -> U
 private fun FocTool(sample: com.strobingn.bowtune.data.ArrowShaft?) {
     var length by remember { mutableStateOf(sample?.lengthIn.orEmpty()) }
     var balance by remember { mutableStateOf(sample?.balanceFromNockIn.orEmpty()) }
-    var shaft by remember { mutableStateOf(sample?.gpi.orEmpty()) }
+    var shaftGpi by remember { mutableStateOf(sample?.gpi.orEmpty()) }
     var point by remember { mutableStateOf(sample?.pointWeightGr.orEmpty()) }
     var insert by remember { mutableStateOf(sample?.insertWeightGr.orEmpty()) }
     var nock by remember { mutableStateOf(sample?.nockWeightGr.orEmpty()) }
@@ -403,7 +403,9 @@ private fun FocTool(sample: com.strobingn.bowtune.data.ArrowShaft?) {
     val result = Calculators.foc(
         length.toDoubleOrNullLenient(),
         balance.toDoubleOrNullLenient(),
-        shaft.toDoubleOrNullLenient(),
+        shaftGpi.toDoubleOrNullLenient()?.let { gpi ->
+            length.toDoubleOrNullLenient()?.let { arrowLength -> gpi * arrowLength }
+        },
         point.toDoubleOrNullLenient(),
         insert.toDoubleOrNullLenient(),
         nock.toDoubleOrNullLenient(),
@@ -412,7 +414,13 @@ private fun FocTool(sample: com.strobingn.bowtune.data.ArrowShaft?) {
     )
     LabeledField(length, { length = it }, "Arrow length (in)")
     LabeledField(balance, { balance = it }, "Balance point from nock (in)")
-    LabeledField(shaft, { shaft = it }, "Shaft grains (or GPI × length)")
+    LabeledField(shaftGpi, { shaftGpi = it }, "Shaft GPI")
+    val shaftWeight = shaftGpi.toDoubleOrNullLenient()?.let { gpi ->
+        length.toDoubleOrNullLenient()?.let { arrowLength -> gpi * arrowLength }
+    }
+    shaftWeight?.let {
+        Text("Calculated shaft weight: ${"%.1f".format(it)} gr", style = MaterialTheme.typography.bodySmall)
+    }
     LabeledField(point, { point = it }, "Point (gr)")
     LabeledField(insert, { insert = it }, "Insert (gr)")
     LabeledField(nock, { nock = it }, "Nock (gr)")
