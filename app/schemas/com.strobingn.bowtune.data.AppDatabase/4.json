@@ -1,0 +1,605 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 4,
+    "identityHash": "bb2faafd52cce0cb6155a195512f3c9f",
+    "entities": [
+      {
+        "tableName": "bow_setups",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `brand` TEXT NOT NULL, `model` TEXT NOT NULL, `drawWeightLbs` TEXT NOT NULL, `drawLengthIn` TEXT NOT NULL, `rest` TEXT NOT NULL, `sight` TEXT NOT NULL, `arrows` TEXT NOT NULL, `notes` TEXT NOT NULL, `limbShiftSetting` TEXT NOT NULL, `yokeTwistNotes` TEXT NOT NULL, `camSystem` TEXT NOT NULL, `nextTuneDueEpochMs` INTEGER, `iboSpeedFps` TEXT NOT NULL, `arrowSpeedFps` TEXT NOT NULL, `lastCamCheckEpochMs` INTEGER, `camTimingNotes` TEXT NOT NULL, `lastCableCheckEpochMs` INTEGER, `cableStretchNotes` TEXT NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "brand",
+            "columnName": "brand",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "model",
+            "columnName": "model",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "drawWeightLbs",
+            "columnName": "drawWeightLbs",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "drawLengthIn",
+            "columnName": "drawLengthIn",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "rest",
+            "columnName": "rest",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sight",
+            "columnName": "sight",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "arrows",
+            "columnName": "arrows",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "notes",
+            "columnName": "notes",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "limbShiftSetting",
+            "columnName": "limbShiftSetting",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "yokeTwistNotes",
+            "columnName": "yokeTwistNotes",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "camSystem",
+            "columnName": "camSystem",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "nextTuneDueEpochMs",
+            "columnName": "nextTuneDueEpochMs",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "iboSpeedFps",
+            "columnName": "iboSpeedFps",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "arrowSpeedFps",
+            "columnName": "arrowSpeedFps",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastCamCheckEpochMs",
+            "columnName": "lastCamCheckEpochMs",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "camTimingNotes",
+            "columnName": "camTimingNotes",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastCableCheckEpochMs",
+            "columnName": "lastCableCheckEpochMs",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "cableStretchNotes",
+            "columnName": "cableStretchNotes",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "tune_sessions",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `dateEpochMs` INTEGER NOT NULL, `distanceYd` TEXT NOT NULL, `scoreOrGroup` TEXT NOT NULL, `notes` TEXT NOT NULL, `setupName` TEXT NOT NULL, `sessionKind` TEXT NOT NULL, `indoorOutdoor` TEXT NOT NULL, `windNote` TEXT NOT NULL, `tempNote` TEXT NOT NULL, `tearType` TEXT NOT NULL, `metricsJson` TEXT NOT NULL DEFAULT '{}')",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "dateEpochMs",
+            "columnName": "dateEpochMs",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "distanceYd",
+            "columnName": "distanceYd",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "scoreOrGroup",
+            "columnName": "scoreOrGroup",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "notes",
+            "columnName": "notes",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "setupName",
+            "columnName": "setupName",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sessionKind",
+            "columnName": "sessionKind",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "indoorOutdoor",
+            "columnName": "indoorOutdoor",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "windNote",
+            "columnName": "windNote",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "tempNote",
+            "columnName": "tempNote",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "tearType",
+            "columnName": "tearType",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "metricsJson",
+            "columnName": "metricsJson",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "'{}'"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "guided_tune_sessions",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `protocolId` TEXT NOT NULL, `title` TEXT NOT NULL, `setupName` TEXT NOT NULL, `startedAtEpochMs` INTEGER NOT NULL, `updatedAtEpochMs` INTEGER NOT NULL, `completedAtEpochMs` INTEGER, `currentBlockIndex` INTEGER NOT NULL, `blockLogsJson` TEXT NOT NULL, `status` TEXT NOT NULL, `bareShaftHl20` TEXT NOT NULL, `bareShaftLr20` TEXT NOT NULL, `walkBackLr30` TEXT NOT NULL, `final30GroupSize` TEXT NOT NULL, `decisionNotes` TEXT NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "protocolId",
+            "columnName": "protocolId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "title",
+            "columnName": "title",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "setupName",
+            "columnName": "setupName",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "startedAtEpochMs",
+            "columnName": "startedAtEpochMs",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedAtEpochMs",
+            "columnName": "updatedAtEpochMs",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "completedAtEpochMs",
+            "columnName": "completedAtEpochMs",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "currentBlockIndex",
+            "columnName": "currentBlockIndex",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "blockLogsJson",
+            "columnName": "blockLogsJson",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "status",
+            "columnName": "status",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "bareShaftHl20",
+            "columnName": "bareShaftHl20",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "bareShaftLr20",
+            "columnName": "bareShaftLr20",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "walkBackLr30",
+            "columnName": "walkBackLr30",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "final30GroupSize",
+            "columnName": "final30GroupSize",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "decisionNotes",
+            "columnName": "decisionNotes",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "arrow_shafts",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `setupId` INTEGER, `name` TEXT NOT NULL, `brand` TEXT NOT NULL, `spine` TEXT NOT NULL, `lengthIn` TEXT NOT NULL, `gpi` TEXT NOT NULL, `pointWeightGr` TEXT NOT NULL, `insertWeightGr` TEXT NOT NULL, `nockWeightGr` TEXT NOT NULL, `vaneWeightGr` TEXT NOT NULL, `wrapWeightGr` TEXT NOT NULL, `balanceFromNockIn` TEXT NOT NULL, `quantity` TEXT NOT NULL, `notes` TEXT NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "setupId",
+            "columnName": "setupId",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "brand",
+            "columnName": "brand",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "spine",
+            "columnName": "spine",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lengthIn",
+            "columnName": "lengthIn",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "gpi",
+            "columnName": "gpi",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "pointWeightGr",
+            "columnName": "pointWeightGr",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "insertWeightGr",
+            "columnName": "insertWeightGr",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "nockWeightGr",
+            "columnName": "nockWeightGr",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "vaneWeightGr",
+            "columnName": "vaneWeightGr",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "wrapWeightGr",
+            "columnName": "wrapWeightGr",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "balanceFromNockIn",
+            "columnName": "balanceFromNockIn",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "quantity",
+            "columnName": "quantity",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "notes",
+            "columnName": "notes",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "paper_tear_logs",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `dateEpochMs` INTEGER NOT NULL, `tearType` TEXT NOT NULL, `setupName` TEXT NOT NULL, `distanceFt` TEXT NOT NULL, `notes` TEXT NOT NULL, `magnitudeIn` REAL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "dateEpochMs",
+            "columnName": "dateEpochMs",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "tearType",
+            "columnName": "tearType",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "setupName",
+            "columnName": "setupName",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "distanceFt",
+            "columnName": "distanceFt",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "notes",
+            "columnName": "notes",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "magnitudeIn",
+            "columnName": "magnitudeIn",
+            "affinity": "REAL",
+            "notNull": false
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "adjustment_logs",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `dateEpochMs` INTEGER NOT NULL, `setupName` TEXT NOT NULL, `kind` TEXT NOT NULL, `beforeValue` TEXT NOT NULL, `afterValue` TEXT NOT NULL, `notes` TEXT NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "dateEpochMs",
+            "columnName": "dateEpochMs",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "setupName",
+            "columnName": "setupName",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "kind",
+            "columnName": "kind",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "beforeValue",
+            "columnName": "beforeValue",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "afterValue",
+            "columnName": "afterValue",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "notes",
+            "columnName": "notes",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "maintenance_logs",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `setupName` TEXT NOT NULL, `kind` TEXT NOT NULL, `dateEpochMs` INTEGER NOT NULL, `notes` TEXT NOT NULL, `nextDueEpochMs` INTEGER)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "setupName",
+            "columnName": "setupName",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "kind",
+            "columnName": "kind",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "dateEpochMs",
+            "columnName": "dateEpochMs",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "notes",
+            "columnName": "notes",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "nextDueEpochMs",
+            "columnName": "nextDueEpochMs",
+            "affinity": "INTEGER",
+            "notNull": false
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": []
+      }
+    ],
+    "views": [],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'bb2faafd52cce0cb6155a195512f3c9f')"
+    ]
+  }
+}

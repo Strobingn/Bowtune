@@ -1,5 +1,6 @@
 package com.strobingn.bowtune.data
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
@@ -40,7 +41,9 @@ data class TuneSession(
     val indoorOutdoor: String = "",
     val windNote: String = "",
     val tempNote: String = "",
-    val tearType: String = ""
+    val tearType: String = "",
+    /** Flat JSON object of numeric chart metrics (see [TuneMetrics]). "{}" for pre-1.4 rows. */
+    @ColumnInfo(defaultValue = "{}") val metricsJson: String = "{}"
 )
 
 enum class TearType(
@@ -55,7 +58,17 @@ enum class TearType(
     HIGH_LEFT("High-left", "Nock high + left combo"),
     HIGH_RIGHT("High-right", "Nock high + right combo"),
     LOW_LEFT("Low-left", "Nock low + left combo"),
-    LOW_RIGHT("Low-right", "Nock low + right combo")
+    LOW_RIGHT("Low-right", "Nock low + right combo");
+
+    companion object {
+        /** Accepts the enum name (Tear tab logs) or the display label (older Logs free text). */
+        fun fromStored(raw: String?): TearType? {
+            val value = raw?.trim().orEmpty()
+            if (value.isEmpty()) return null
+            return entries.firstOrNull { it.name.equals(value, ignoreCase = true) }
+                ?: entries.firstOrNull { it.label.equals(value, ignoreCase = true) }
+        }
+    }
 }
 
 data class ChecklistItem(

@@ -14,8 +14,10 @@ fun appTypography(largeText: Boolean): Typography {
     )
     val base = Typography
     return Typography(
+        displayMedium = base.displayMedium.scaled(),
         displaySmall = base.displaySmall.scaled(),
         headlineMedium = base.headlineMedium.scaled(),
+        headlineSmall = base.headlineSmall.scaled(),
         titleLarge = base.titleLarge.scaled(),
         titleMedium = base.titleMedium.scaled(),
         titleSmall = base.titleSmall.scaled(),
@@ -29,6 +31,19 @@ fun appTypography(largeText: Boolean): Typography {
 }
 
 val Typography = Typography(
+    displayMedium = TextStyle(
+        fontFamily = FontFamily.Default,
+        fontWeight = FontWeight.Bold,
+        fontSize = 40.sp,
+        lineHeight = 44.sp,
+        letterSpacing = (-0.5).sp
+    ),
+    headlineSmall = TextStyle(
+        fontFamily = FontFamily.Default,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 20.sp,
+        lineHeight = 26.sp
+    ),
     displaySmall = TextStyle(
         fontFamily = FontFamily.Default,
         fontWeight = FontWeight.Bold,

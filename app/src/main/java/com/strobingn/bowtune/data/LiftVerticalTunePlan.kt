@@ -17,8 +17,14 @@ object LiftVerticalTunePlan {
     data class LogField(
         val key: String,
         val label: String,
-        val hint: String = ""
+        val hint: String = "",
+        /** When set, the field is entered with a slider; free text still loads as text. */
+        val numeric: NumericSpec? = null
     )
+
+    private val SIGNED_6 = NumericSpec(-6.0, 6.0, 0.125, "in")
+    private val SPREAD_6 = NumericSpec(0.0, 6.0, 0.125, "in")
+    private val SIGNED_12 = NumericSpec(-12.0, 12.0, 0.25, "in")
 
     data class Block(
         val id: String,
@@ -61,12 +67,12 @@ object LiftVerticalTunePlan {
                 If worse → revert. Stop when bare & fletched share the same vertical within today's dispersion.
             """.trimIndent(),
             logFields = listOf(
-                LogField("pass1BareVH", "Pass1 bare V H/L\"", "positive = bare high"),
-                LogField("pass1BareHL", "Pass1 bare H L/R\"", "positive = bare left (RH)"),
-                LogField("pass1BareSpread", "Pass1 bare-to-bare spread\""),
-                LogField("pass2BareVH", "Pass2 bare V H/L\""),
-                LogField("pass2BareHL", "Pass2 bare H L/R\""),
-                LogField("pass2BareSpread", "Pass2 bare-to-bare spread\""),
+                LogField("pass1BareVH", "Pass1 bare V H/L\"", "positive = bare high", SIGNED_6),
+                LogField("pass1BareHL", "Pass1 bare H L/R\"", "positive = bare left (RH)", SIGNED_6),
+                LogField("pass1BareSpread", "Pass1 bare-to-bare spread\"", numeric = SPREAD_6),
+                LogField("pass2BareVH", "Pass2 bare V H/L\"", "positive = bare high", SIGNED_6),
+                LogField("pass2BareHL", "Pass2 bare H L/R\"", "positive = bare left (RH)", SIGNED_6),
+                LogField("pass2BareSpread", "Pass2 bare-to-bare spread\"", numeric = SPREAD_6),
                 LogField("nockAdjust", "Nock adjust made", "e.g. +1/32\" up / none / reverted"),
                 LogField("bareNotes", "Notes")
             )
@@ -101,9 +107,9 @@ object LiftVerticalTunePlan {
                 Normal small lateral error → note for walk-back; do not fix yet.
             """.trimIndent(),
             logFields = listOf(
-                LogField("groupA", "Group A normal H vs aim"),
-                LogField("groupB", "Group B tiny CW vs A (H\")"),
-                LogField("groupC", "Group C tiny CCW vs A (H\")"),
+                LogField("groupA", "Group A normal H vs aim", "positive = right", SIGNED_12),
+                LogField("groupB", "Group B tiny CW vs A (H\")", "positive = right", SIGNED_12),
+                LogField("groupC", "Group C tiny CCW vs A (H\")", "positive = right", SIGNED_12),
                 LogField("torqueVerdict", "Verdict", "grip priority / note for walk-back")
             )
         ),
@@ -119,12 +125,12 @@ object LiftVerticalTunePlan {
                 Whole line offset the same amount → move sight, not rest.
             """.trimIndent(),
             logFields = listOf(
-                LogField("p1_10", "Pass1 H @10 yd"),
-                LogField("p1_20", "Pass1 H @20 yd"),
-                LogField("p1_30", "Pass1 H @30 yd"),
-                LogField("p2_10", "Pass2 H @10 yd"),
-                LogField("p2_20", "Pass2 H @20 yd"),
-                LogField("p2_30", "Pass2 H @30 yd"),
+                LogField("p1_10", "Pass1 H @10 yd", "positive = right", SIGNED_12),
+                LogField("p1_20", "Pass1 H @20 yd", "positive = right", SIGNED_12),
+                LogField("p1_30", "Pass1 H @30 yd", "positive = right", SIGNED_12),
+                LogField("p2_10", "Pass2 H @10 yd", "positive = right", SIGNED_12),
+                LogField("p2_20", "Pass2 H @20 yd", "positive = right", SIGNED_12),
+                LogField("p2_30", "Pass2 H @30 yd", "positive = right", SIGNED_12),
                 LogField("walkbackAction", "Action", "rest micro / sight / none")
             )
         ),

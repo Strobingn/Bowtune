@@ -2,43 +2,57 @@ package com.strobingn.bowtune.ui.theme
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Shapes
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 
+// Every role is set explicitly: Material 3 fills unspecified roles (surfaceContainer*, surfaceTint,
+// surfaceBright/Dim) from its baseline palette, which is tinted purple.
 private val DarkColors = darkColorScheme(
     primary = Grey90,
     onPrimary = Grey10,
     primaryContainer = Grey30,
     onPrimaryContainer = Grey95,
+    inversePrimary = Grey40,
     secondary = Grey80,
     onSecondary = Grey10,
-    secondaryContainer = Grey20,
+    secondaryContainer = Grey25,
     onSecondaryContainer = Grey90,
     tertiary = Grey70,
     onTertiary = Grey10,
     tertiaryContainer = WarningContainerDark,
     onTertiaryContainer = Grey90,
+    background = Grey07,
+    onBackground = Grey95,
+    surface = Grey07,
+    onSurface = Grey95,
+    surfaceVariant = Grey20,
+    onSurfaceVariant = Grey80,
+    surfaceTint = Grey90,
+    inverseSurface = Grey90,
+    inverseOnSurface = Grey10,
     error = Grey80,
     onError = Grey10,
     errorContainer = Grey20,
     onErrorContainer = Grey90,
-    background = Grey10,
-    onBackground = Grey95,
-    surface = Grey10,
-    onSurface = Grey95,
-    surfaceVariant = Grey20,
-    onSurfaceVariant = Grey80,
     outline = Grey50,
     outlineVariant = Grey30,
-    inverseSurface = Grey90,
-    inverseOnSurface = Grey10,
-    inversePrimary = Grey40,
-    scrim = Grey00
+    scrim = Grey00,
+    surfaceBright = Grey25,
+    surfaceContainer = Grey12,
+    surfaceContainerHigh = Grey17,
+    surfaceContainerHighest = Grey22,
+    surfaceContainerLow = Grey10,
+    surfaceContainerLowest = Grey05,
+    surfaceDim = Grey07
 )
 
 private val HighContrastDark = darkColorScheme(
@@ -46,6 +60,7 @@ private val HighContrastDark = darkColorScheme(
     onPrimary = ContrastInk,
     primaryContainer = Grey20,
     onPrimaryContainer = ContrastPaper,
+    inversePrimary = Grey20,
     secondary = Grey90,
     onSecondary = ContrastInk,
     secondaryContainer = Grey15,
@@ -54,22 +69,29 @@ private val HighContrastDark = darkColorScheme(
     onTertiary = ContrastInk,
     tertiaryContainer = Grey20,
     onTertiaryContainer = ContrastPaper,
-    error = Grey90,
-    onError = ContrastInk,
-    errorContainer = Grey20,
-    onErrorContainer = ContrastPaper,
     background = ContrastInk,
     onBackground = ContrastPaper,
     surface = ContrastDarkSurface,
     onSurface = ContrastPaper,
     surfaceVariant = Grey15,
     onSurfaceVariant = Grey95,
-    outline = Grey90,
-    outlineVariant = Grey50,
+    surfaceTint = ContrastPaper,
     inverseSurface = ContrastPaper,
     inverseOnSurface = ContrastInk,
-    inversePrimary = Grey20,
-    scrim = ContrastInk
+    error = Grey90,
+    onError = ContrastInk,
+    errorContainer = Grey20,
+    onErrorContainer = ContrastPaper,
+    outline = Grey90,
+    outlineVariant = Grey50,
+    scrim = ContrastInk,
+    surfaceBright = Grey20,
+    surfaceContainer = Grey08,
+    surfaceContainerHigh = Grey12,
+    surfaceContainerHighest = Grey15,
+    surfaceContainerLow = Grey05,
+    surfaceContainerLowest = ContrastInk,
+    surfaceDim = ContrastInk
 )
 
 private val HighContrastLight = lightColorScheme(
@@ -77,6 +99,7 @@ private val HighContrastLight = lightColorScheme(
     onPrimary = ContrastPaper,
     primaryContainer = Grey90,
     onPrimaryContainer = ContrastInk,
+    inversePrimary = Grey90,
     secondary = Grey20,
     onSecondary = ContrastPaper,
     secondaryContainer = Grey95,
@@ -85,22 +108,29 @@ private val HighContrastLight = lightColorScheme(
     onTertiary = ContrastPaper,
     tertiaryContainer = Grey90,
     onTertiaryContainer = ContrastInk,
-    error = Grey20,
-    onError = ContrastPaper,
-    errorContainer = Grey90,
-    onErrorContainer = ContrastInk,
     background = ContrastPaper,
     onBackground = ContrastInk,
     surface = ContrastLightSurface,
     onSurface = ContrastInk,
     surfaceVariant = Grey95,
     onSurfaceVariant = Grey15,
-    outline = ContrastInk,
-    outlineVariant = Grey40,
+    surfaceTint = ContrastInk,
     inverseSurface = ContrastInk,
     inverseOnSurface = ContrastPaper,
-    inversePrimary = Grey90,
-    scrim = ContrastInk
+    error = Grey20,
+    onError = ContrastPaper,
+    errorContainer = Grey90,
+    onErrorContainer = ContrastInk,
+    outline = ContrastInk,
+    outlineVariant = Grey40,
+    scrim = ContrastInk,
+    surfaceBright = ContrastPaper,
+    surfaceContainer = Grey93,
+    surfaceContainerHigh = Grey95,
+    surfaceContainerHighest = Grey88,
+    surfaceContainerLow = Grey97,
+    surfaceContainerLowest = ContrastPaper,
+    surfaceDim = Grey85
 )
 
 private val LightColors = lightColorScheme(
@@ -108,30 +138,54 @@ private val LightColors = lightColorScheme(
     onPrimary = Grey100,
     primaryContainer = Grey90,
     onPrimaryContainer = Grey10,
+    inversePrimary = Grey80,
     secondary = Grey40,
     onSecondary = Grey100,
-    secondaryContainer = Grey95,
+    secondaryContainer = Grey88,
     onSecondaryContainer = Grey15,
     tertiary = Grey50,
     onTertiary = Grey100,
     tertiaryContainer = WarningContainerLight,
     onTertiaryContainer = Grey15,
-    error = Grey40,
-    onError = Grey100,
-    errorContainer = Grey95,
-    onErrorContainer = Grey15,
     background = Grey99,
     onBackground = Grey10,
     surface = Grey99,
     onSurface = Grey10,
     surfaceVariant = Grey95,
     onSurfaceVariant = Grey40,
-    outline = Grey60,
-    outlineVariant = Grey80,
+    surfaceTint = Grey20,
     inverseSurface = Grey20,
     inverseOnSurface = Grey95,
-    inversePrimary = Grey80,
-    scrim = Grey00
+    error = Grey40,
+    onError = Grey100,
+    errorContainer = Grey95,
+    onErrorContainer = Grey15,
+    outline = Grey60,
+    outlineVariant = Grey80,
+    scrim = Grey00,
+    surfaceBright = Grey100,
+    surfaceContainer = Grey93,
+    surfaceContainerHigh = Grey95,
+    surfaceContainerHighest = Grey88,
+    surfaceContainerLow = Grey97,
+    surfaceContainerLowest = Grey100,
+    surfaceDim = Grey85
+)
+
+/** The non-dynamic schemes the app actually ships. All roles are pure greys. */
+fun bowTuneColorScheme(darkTheme: Boolean, highContrast: Boolean): ColorScheme = when {
+    highContrast && darkTheme -> HighContrastDark
+    highContrast -> HighContrastLight
+    darkTheme -> DarkColors
+    else -> LightColors
+}
+
+private val AppShapes = Shapes(
+    extraSmall = RoundedCornerShape(6.dp),
+    small = RoundedCornerShape(10.dp),
+    medium = RoundedCornerShape(16.dp),
+    large = RoundedCornerShape(22.dp),
+    extraLarge = RoundedCornerShape(28.dp)
 )
 
 @Composable
@@ -144,19 +198,17 @@ fun BowTuneTheme(
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
-        highContrast && darkTheme -> HighContrastDark
-        highContrast && !darkTheme -> HighContrastLight
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
+        !highContrast && dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
-        darkTheme -> DarkColors
-        else -> LightColors
+        else -> bowTuneColorScheme(darkTheme, highContrast)
     }
 
     MaterialTheme(
         colorScheme = colorScheme,
         typography = appTypography(largeText),
+        shapes = AppShapes,
         content = content
     )
 }

@@ -6,9 +6,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -21,6 +24,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.strobingn.bowtune.data.BowSetup
+import com.strobingn.bowtune.data.toDoubleOrNullLenient
+import com.strobingn.bowtune.ui.charts.MirrorBars
+import com.strobingn.bowtune.ui.charts.MirrorRow
+import com.strobingn.bowtune.ui.common.ChartCard
 import com.strobingn.bowtune.ui.common.EmptyState
 import com.strobingn.bowtune.ui.common.formatDay
 
@@ -44,13 +51,29 @@ fun CompareSetupsPane(setups: List<BowSetup>) {
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        Text("Left", fontWeight = FontWeight.SemiBold)
-        setups.forEach { s ->
-            FilterChip(selected = leftId == s.id, onClick = { leftId = s.id }, label = { Text(s.name) })
+        Text("Left (solid)", fontWeight = FontWeight.SemiBold)
+        LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            items(setups, key = { "l${it.id}" }) { s ->
+                FilterChip(selected = leftId == s.id, onClick = { leftId = s.id }, label = { Text(s.name) })
+            }
         }
-        Text("Right", fontWeight = FontWeight.SemiBold)
-        setups.forEach { s ->
-            FilterChip(selected = rightId == s.id, onClick = { rightId = s.id }, label = { Text(s.name) })
+        Text("Right (hatched)", fontWeight = FontWeight.SemiBold)
+        LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            items(setups, key = { "r${it.id}" }) { s ->
+                FilterChip(selected = rightId == s.id, onClick = { rightId = s.id }, label = { Text(s.name) })
+            }
+        }
+        ChartCard(title = "Specs side by side", subtitle = "Bars scale per row to the larger value") {
+            MirrorBars(
+                rows = listOf(
+                    MirrorRow("Draw weight", left.drawWeightLbs.toDoubleOrNullLenient(), right.drawWeightLbs.toDoubleOrNullLenient(), " lb"),
+                    MirrorRow("Draw length", left.drawLengthIn.toDoubleOrNullLenient(), right.drawLengthIn.toDoubleOrNullLenient(), "\""),
+                    MirrorRow("IBO speed", left.iboSpeedFps.toDoubleOrNullLenient(), right.iboSpeedFps.toDoubleOrNullLenient(), ""),
+                    MirrorRow("Chrono speed", left.arrowSpeedFps.toDoubleOrNullLenient(), right.arrowSpeedFps.toDoubleOrNullLenient(), "")
+                ),
+                leftName = left.name,
+                rightName = right.name
+            )
         }
         val rows = listOf(
             "Name" to (left.name to right.name),
@@ -75,7 +98,12 @@ fun CompareSetupsPane(setups: List<BowSetup>) {
         )
         rows.forEach { (label, pair) ->
             val differs = pair.first.trim() != pair.second.trim()
-            Card(Modifier.fillMaxWidth()) {
+            Card(
+                Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = if (differs) MaterialTheme.colorScheme.surfaceContainerHighest else MaterialTheme.colorScheme.surfaceContainerLow
+                )
+            ) {
                 Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(
                         if (differs) "$label (differs)" else label,

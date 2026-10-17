@@ -13,7 +13,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
-import androidx.compose.material3.FilterChip
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -28,17 +28,29 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.strobingn.bowtune.BowTuneApp
 import com.strobingn.bowtune.data.BowSetup
+import com.strobingn.bowtune.data.ChartData
 import com.strobingn.bowtune.data.MaintenanceLog
+import com.strobingn.bowtune.ui.charts.EventTimeline
+import com.strobingn.bowtune.ui.charts.ProgressRing
+import com.strobingn.bowtune.ui.charts.TimelineEvent
+import com.strobingn.bowtune.ui.common.ChartCard
 import com.strobingn.bowtune.ui.common.EmptyState
+import com.strobingn.bowtune.ui.common.FormSection
 import com.strobingn.bowtune.ui.common.LabeledField
+import com.strobingn.bowtune.ui.common.NumberSlider
+import com.strobingn.bowtune.ui.common.SegmentedChoice
 import com.strobingn.bowtune.ui.common.daysFromNow
 import com.strobingn.bowtune.ui.common.formatDay
 import com.strobingn.bowtune.ui.common.formatWhen
+import com.strobingn.bowtune.ui.common.shortDate
 import kotlinx.coroutines.launch
+
+private val SERVICE_KINDS = listOf(MaintenanceLog.CAM_TIMING, MaintenanceLog.CABLE_STRETCH)
 
 @Composable
 fun MaintenancePane(setups: List<BowSetup>, activeId: Long) {
@@ -52,91 +64,146 @@ fun MaintenancePane(setups: List<BowSetup>, activeId: Long) {
 
     var kind by remember { mutableStateOf(MaintenanceLog.CAM_TIMING) }
     var notes by remember { mutableStateOf("") }
-    var dueDays by remember { mutableStateOf("30") }
+    var dueDays by remember { mutableStateOf<Double?>(30.0) }
+    val now = System.currentTimeMillis()
 
-    Column(Modifier.fillMaxSize()) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text("Cam timing / cable stretch", fontWeight = FontWeight.SemiBold)
-            Text(
-                "Active: ${active?.name ?: "none"}. Last cam note: ${active?.camTimingNotes?.ifBlank { "—" }}. Last cable: ${active?.cableStretchNotes?.ifBlank { "—" }}.",
-                style = MaterialTheme.typography.bodySmall
-            )
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                FilterChip(
-                    selected = kind == MaintenanceLog.CAM_TIMING,
-                    onClick = { kind = MaintenanceLog.CAM_TIMING },
-                    label = { Text("Cam timing") }
-                )
-                FilterChip(
-                    selected = kind == MaintenanceLog.CABLE_STRETCH,
-                    onClick = { kind = MaintenanceLog.CABLE_STRETCH },
-                    label = { Text("Cable stretch") }
-                )
-            }
-            LabeledField(notes, { notes = it }, "What you checked / changed", singleLine = false)
-            LabeledField(dueDays, { dueDays = it }, "Next check in (days)")
-            Button(
-                onClick = {
-                    val now = System.currentTimeMillis()
-                    val due = dueDays.toIntOrNull()?.let { daysFromNow(it) }
-                    scope.launch {
-                        dao.upsert(
-                            MaintenanceLog(
-                                setupName = active?.name.orEmpty(),
-                                kind = kind,
-                                dateEpochMs = now,
-                                notes = notes.trim(),
-                                nextDueEpochMs = due
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        item {
+            ChartCard(title = "Service countdown", subtitle = "Days until the next check (ring = 30-day window)") {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+                    val due = listOf(
+                        "Cam timing" to logs.firstOrNull { it.kind == MaintenanceLog.CAM_TIMING }?.nextDueEpochMs,
+                        "Cable stretch" to logs.firstOrNull { it.kind == MaintenanceLog.CABLE_STRETCH }?.nextDueEpochMs,
+                        "Next tune" to active?.nextTuneDueEpochMs
+                    )
+                    due.forEach { (label, at) ->
+                        val days = at?.let { ChartData.daysUntil(it, now) }
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            ProgressRing(
+                                progress = (days ?: 0L).coerceIn(0L, 30L) / 30f,
+                                size = 76.dp,
+                                stroke = 8.dp,
+                                centerText = when {
+                                    days == null -> "—"
+                                    days < 0 -> "Due"
+                                    else -> "${days}d"
+                                },
+                                caption = label,
+                                dashedTrack = days == null
                             )
-                        )
-                        active?.let { setup ->
-                            val updated = when (kind) {
-                                MaintenanceLog.CAM_TIMING -> setup.copy(
-                                    lastCamCheckEpochMs = now,
-                                    camTimingNotes = notes.trim().ifBlank { setup.camTimingNotes },
-                                    nextTuneDueEpochMs = due ?: setup.nextTuneDueEpochMs
-                                )
-                                else -> setup.copy(
-                                    lastCableCheckEpochMs = now,
-                                    cableStretchNotes = notes.trim().ifBlank { setup.cableStretchNotes },
-                                    nextTuneDueEpochMs = due ?: setup.nextTuneDueEpochMs
-                                )
-                            }
-                            setupDao.upsert(updated)
+                            Text(
+                                label,
+                                style = MaterialTheme.typography.labelMedium,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.padding(top = 4.dp)
+                            )
                         }
-                        notes = ""
                     }
-                },
-                enabled = notes.isNotBlank(),
-                modifier = Modifier.fillMaxWidth()
-            ) { Text("Save service note") }
+                }
+            }
+        }
+        item {
+            FormSection("Cam timing / cable stretch") {
+                Text(
+                    "Active: ${active?.name ?: "none"}. Last cam note: ${active?.camTimingNotes?.ifBlank { "—" }}. Last cable: ${active?.cableStretchNotes?.ifBlank { "—" }}.",
+                    style = MaterialTheme.typography.bodySmall
+                )
+                SegmentedChoice(
+                    options = listOf(MaintenanceLog.CAM_TIMING to "Cam timing", MaintenanceLog.CABLE_STRETCH to "Cable stretch"),
+                    selected = kind,
+                    onSelect = { kind = it }
+                )
+                LabeledField(notes, { notes = it }, "What you checked / changed", singleLine = false)
+                NumberSlider(
+                    label = "Next check in",
+                    value = dueDays,
+                    onValueChange = { dueDays = it },
+                    min = 0.0,
+                    max = 180.0,
+                    step = 1.0,
+                    unit = "days",
+                    defaultValue = 30.0,
+                    supporting = dueDays?.let { "Due ${formatDay(daysFromNow(it.toInt()))}" } ?: "No reminder"
+                )
+                Button(
+                    onClick = {
+                        val stamp = System.currentTimeMillis()
+                        val due = dueDays?.let { daysFromNow(it.toInt()) }
+                        scope.launch {
+                            dao.upsert(
+                                MaintenanceLog(
+                                    setupName = active?.name.orEmpty(),
+                                    kind = kind,
+                                    dateEpochMs = stamp,
+                                    notes = notes.trim(),
+                                    nextDueEpochMs = due
+                                )
+                            )
+                            active?.let { setup ->
+                                val updated = when (kind) {
+                                    MaintenanceLog.CAM_TIMING -> setup.copy(
+                                        lastCamCheckEpochMs = stamp,
+                                        camTimingNotes = notes.trim().ifBlank { setup.camTimingNotes },
+                                        nextTuneDueEpochMs = due ?: setup.nextTuneDueEpochMs
+                                    )
+                                    else -> setup.copy(
+                                        lastCableCheckEpochMs = stamp,
+                                        cableStretchNotes = notes.trim().ifBlank { setup.cableStretchNotes },
+                                        nextTuneDueEpochMs = due ?: setup.nextTuneDueEpochMs
+                                    )
+                                }
+                                setupDao.upsert(updated)
+                            }
+                            notes = ""
+                        }
+                    },
+                    enabled = notes.isNotBlank(),
+                    modifier = Modifier.fillMaxWidth()
+                ) { Text("Save service note") }
+            }
         }
         if (logs.isEmpty()) {
-            Column(Modifier.padding(24.dp)) {
-                EmptyState("No service notes", "Log cam-sync checks and cable stretch after a string job or leftover paper tears.")
+            item {
+                Column(Modifier.padding(8.dp)) {
+                    EmptyState("No service notes", "Log cam-sync checks and cable stretch after a string job or leftover paper tears.")
+                }
             }
         } else {
-            LazyColumn(
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                items(logs, key = { it.id }) { log ->
-                    Card(Modifier.fillMaxWidth()) {
-                        Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Column(Modifier.weight(1f)) {
-                                Text(
-                                    "${MaintenanceLog.label(log.kind)} · ${log.setupName.ifBlank { "no setup" }}",
-                                    fontWeight = FontWeight.SemiBold
-                                )
-                                Text(formatWhen(log.dateEpochMs), style = MaterialTheme.typography.bodySmall)
-                                Text(log.notes, style = MaterialTheme.typography.bodyMedium)
-                                log.nextDueEpochMs?.let {
-                                    Text("Next due ${formatDay(it)}", style = MaterialTheme.typography.bodySmall)
-                                }
+            item {
+                ChartCard(title = "Service history") {
+                    EventTimeline(
+                        rows = SERVICE_KINDS.map { MaintenanceLog.label(it) },
+                        events = logs.mapNotNull { log ->
+                            val row = SERVICE_KINDS.indexOf(log.kind)
+                            if (row < 0) null else TimelineEvent(row, log.dateEpochMs)
+                        },
+                        dateLabel = { shortDate(it) }
+                    )
+                }
+            }
+            items(logs, key = { it.id }) { log ->
+                Card(
+                    Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
+                ) {
+                    Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Column(Modifier.weight(1f)) {
+                            Text(
+                                "${MaintenanceLog.label(log.kind)} · ${log.setupName.ifBlank { "no setup" }}",
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Text(formatWhen(log.dateEpochMs), style = MaterialTheme.typography.bodySmall)
+                            Text(log.notes, style = MaterialTheme.typography.bodyMedium)
+                            log.nextDueEpochMs?.let {
+                                Text("Next due ${formatDay(it)}", style = MaterialTheme.typography.bodySmall)
                             }
-                            IconButton(onClick = { scope.launch { dao.delete(log) } }) {
-                                Icon(Icons.Filled.Delete, contentDescription = "Delete")
-                            }
+                        }
+                        IconButton(onClick = { scope.launch { dao.delete(log) } }) {
+                            Icon(Icons.Filled.Delete, contentDescription = "Delete")
                         }
                     }
                 }

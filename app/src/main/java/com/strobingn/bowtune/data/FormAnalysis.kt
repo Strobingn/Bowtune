@@ -65,47 +65,50 @@ object FormAnalysis {
         val lHip = pose.getPoseLandmark(PoseLandmark.LEFT_HIP)
         val rHip = pose.getPoseLandmark(PoseLandmark.RIGHT_HIP)
 
-        // Shoulder line tilt (degrees from horizontal)
+        // Shoulder line tilt (degrees from horizontal). Degrees do not depend on photo size.
+        // Other shoulder checks are fractions of the shoulder span so a closer camera
+        // does not invent a fault that a wider shot would miss.
         if (ok(lShoulder) && ok(rShoulder)) {
             val dy = rShoulder!!.position.y - lShoulder!!.position.y
             val dx = rShoulder.position.x - lShoulder.position.x
+            val span = hypot(dx.toDouble(), dy.toDouble()).toFloat().coerceAtLeast(1f)
             val tiltDeg = Math.toDegrees(atan2(dy.toDouble(), dx.toDouble())).toFloat()
             val absTilt = abs(tiltDeg)
-            when {
-                absTilt > 18f -> tips += CoachingTip(
+            when (FormCueRules.shoulderLine(absTilt)) {
+                FormCueRules.ShoulderLine.TILTED -> tips += CoachingTip(
                     title = "Shoulder line looks tilted",
                     detail = "Shoulders ~${absTilt.roundToInt()}° off level. Check for leaning into the shot or a high front shoulder. Level the shoulders and settle before release.",
                     severity = CoachingTip.Severity.CAUTION
                 )
-                absTilt > 10f -> tips += CoachingTip(
+                FormCueRules.ShoulderLine.MILD -> tips += CoachingTip(
                     title = "Mild shoulder tilt",
                     detail = "Slight tilt (~${absTilt.roundToInt()}°). Common when the bow shoulder climbs. Soften the bow arm and keep the front shoulder down.",
                     severity = CoachingTip.Severity.INFO
                 )
-                else -> tips += CoachingTip(
+                FormCueRules.ShoulderLine.LEVEL -> tips += CoachingTip(
                     title = "Shoulder line OK",
                     detail = "Shoulders look roughly level. Keep that consistent shot to shot.",
                     severity = CoachingTip.Severity.INFO
                 )
             }
 
-            // Front / bow shoulder high-low vs drawing side (RH: left = bow)
+            // Front / bow shoulder high-low vs drawing side (RH: left = bow).
+            // Image Y grows downward, so a negative delta means the bow shoulder is higher.
             val bowShoulder = if (assumeRightHanded) lShoulder else rShoulder
             val drawShoulder = if (assumeRightHanded) rShoulder else lShoulder
-            val shoulderDeltaY = bowShoulder.position.y - drawShoulder.position.y
-            // In image coords, smaller Y is higher on screen
-            if (shoulderDeltaY < -12f) {
-                tips += CoachingTip(
+            val shoulderDeltaY = (bowShoulder.position.y - drawShoulder.position.y) / span
+            when (FormCueRules.bowShoulder(shoulderDeltaY)) {
+                FormCueRules.BowShoulder.HIGH -> tips += CoachingTip(
                     title = "Front shoulder may be high",
                     detail = "Bow-side shoulder sits higher than the drawing shoulder. Drop the front shoulder and push the bow hand toward the target without shrugging.",
                     severity = CoachingTip.Severity.CAUTION
                 )
-            } else if (shoulderDeltaY > 18f) {
-                tips += CoachingTip(
+                FormCueRules.BowShoulder.LOW -> tips += CoachingTip(
                     title = "Front shoulder looks low / collapsed",
                     detail = "Bow shoulder dropped a lot vs draw side. Avoid collapsing into the riser — maintain bone alignment through the bow arm.",
                     severity = CoachingTip.Severity.INFO
                 )
+                FormCueRules.BowShoulder.LEVEL -> Unit
             }
         }
 
@@ -164,20 +167,24 @@ object FormAnalysis {
             }
         }
 
-        // Head vs shoulder midpoint
+        // Head vs shoulder midpoint, scaled by shoulder span.
         if (ok(nose) && ok(lShoulder) && ok(rShoulder)) {
-            val midX = (lShoulder!!.position.x + rShoulder!!.position.x) / 2f
+            val span = hypot(
+                (rShoulder!!.position.x - lShoulder!!.position.x).toDouble(),
+                (rShoulder.position.y - lShoulder.position.y).toDouble()
+            ).toFloat().coerceAtLeast(1f)
+            val midX = (lShoulder.position.x + rShoulder.position.x) / 2f
             val midY = (lShoulder.position.y + rShoulder.position.y) / 2f
-            val headOffsetX = nose!!.position.x - midX
-            val headDrop = nose.position.y - midY
-            if (abs(headOffsetX) > 55f) {
+            val headOffsetX = (nose!!.position.x - midX) / span
+            val headDrop = (nose.position.y - midY) / span
+            if (FormCueRules.headShifted(headOffsetX)) {
                 tips += CoachingTip(
                     title = "Head seems shifted off center",
                     detail = "Nose is offset from the shoulder midline. Avoid peeking or tilting the head into the peep — settle the peep to your eye, not the other way around.",
                     severity = CoachingTip.Severity.CAUTION
                 )
             }
-            if (headDrop > 90f) {
+            if (FormCueRules.headDropped(headDrop)) {
                 tips += CoachingTip(
                     title = "Head looks dropped",
                     detail = "Chin/head low relative to shoulders. Check peep height and whether you are collapsing at anchor.",
@@ -186,12 +193,16 @@ object FormAnalysis {
             }
         }
 
-        // Leaning: shoulder midpoint vs hip midpoint
+        // Leaning: shoulder midpoint vs hip midpoint, scaled by shoulder span.
         if (ok(lShoulder) && ok(rShoulder) && ok(lHip) && ok(rHip)) {
-            val shoulderMidX = (lShoulder!!.position.x + rShoulder!!.position.x) / 2f
+            val span = hypot(
+                (rShoulder!!.position.x - lShoulder!!.position.x).toDouble(),
+                (rShoulder.position.y - lShoulder.position.y).toDouble()
+            ).toFloat().coerceAtLeast(1f)
+            val shoulderMidX = (lShoulder.position.x + rShoulder.position.x) / 2f
             val hipMidX = (lHip!!.position.x + rHip!!.position.x) / 2f
-            val lean = shoulderMidX - hipMidX
-            if (abs(lean) > 40f) {
+            val lean = (shoulderMidX - hipMidX) / span
+            if (FormCueRules.leaning(lean)) {
                 tips += CoachingTip(
                     title = "Possible lean",
                     detail = "Torso midline shifts vs hips. Common when fighting draw weight or reaching for the peep. Stand tall, weight balanced, then draw.",
@@ -243,4 +254,32 @@ object FormAnalysis {
         val cos = (dot / mag).toFloat().coerceIn(-1f, 1f)
         return Math.toDegrees(kotlin.math.acos(cos).toDouble()).toFloat()
     }
+}
+
+/**
+ * Pose cues as angles or fractions of shoulder span.
+ * A fixed pixel threshold changes its meaning between a 480p analysis frame and a close crop.
+ */
+internal object FormCueRules {
+    enum class ShoulderLine { LEVEL, MILD, TILTED }
+    enum class BowShoulder { LEVEL, HIGH, LOW }
+
+    fun shoulderLine(absTiltDeg: Float): ShoulderLine = when {
+        absTiltDeg > 18f -> ShoulderLine.TILTED
+        absTiltDeg > 10f -> ShoulderLine.MILD
+        else -> ShoulderLine.LEVEL
+    }
+
+    /** [deltaYOverSpan] is (bow shoulder Y − draw shoulder Y) / shoulder span. Image Y grows down. */
+    fun bowShoulder(deltaYOverSpan: Float): BowShoulder = when {
+        deltaYOverSpan < -0.08f -> BowShoulder.HIGH
+        deltaYOverSpan > 0.12f -> BowShoulder.LOW
+        else -> BowShoulder.LEVEL
+    }
+
+    fun headShifted(offsetXOverSpan: Float): Boolean = abs(offsetXOverSpan) > 0.35f
+
+    fun headDropped(dropOverSpan: Float): Boolean = dropOverSpan > 0.55f
+
+    fun leaning(leanOverSpan: Float): Boolean = abs(leanOverSpan) > 0.25f
 }

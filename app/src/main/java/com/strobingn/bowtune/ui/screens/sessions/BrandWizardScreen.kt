@@ -17,7 +17,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -43,6 +42,7 @@ import com.strobingn.bowtune.data.BrandWizardCatalog
 import com.strobingn.bowtune.data.GuidedTuneSession
 import com.strobingn.bowtune.data.SessionKind
 import com.strobingn.bowtune.data.TuneSession
+import com.strobingn.bowtune.ui.charts.SegmentedTimeline
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 
@@ -170,10 +170,7 @@ fun BrandWizardScreen(
             Text(wizard.title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
             Text(wizard.summary, style = MaterialTheme.typography.bodyMedium)
             Text("Step ${blockIndex + 1} of ${steps.size}", style = MaterialTheme.typography.labelLarge)
-            LinearProgressIndicator(
-                progress = { (blockIndex + 1f) / steps.size },
-                modifier = Modifier.fillMaxWidth()
-            )
+            SegmentedTimeline(weights = steps.map { 1 }, currentIndex = blockIndex)
             OutlinedTextField(
                 setupName,
                 { setupName = it },
@@ -181,7 +178,12 @@ fun BrandWizardScreen(
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )
-            Card(Modifier.fillMaxWidth()) {
+            Card(
+                Modifier.fillMaxWidth(),
+                colors = androidx.compose.material3.CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+                )
+            ) {
                 Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(step.title, fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.titleMedium)
                     Text(step.instructions)

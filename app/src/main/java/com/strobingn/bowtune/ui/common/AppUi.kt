@@ -34,7 +34,8 @@ fun Context.shareText(title: String, body: String) {
     startActivity(Intent.createChooser(intent, title))
 }
 
-fun Context.tickHaptic(enabled: Boolean) {
+/** [strength] 1 = light, 2 = medium, 3 = strong (duration + amplitude where supported). */
+fun Context.tickHaptic(enabled: Boolean, strength: Int = 2) {
     if (!enabled) return
     val vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
         val manager = getSystemService(VibratorManager::class.java)
@@ -43,12 +44,10 @@ fun Context.tickHaptic(enabled: Boolean) {
         @Suppress("DEPRECATION")
         getSystemService(Vibrator::class.java)
     } ?: return
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-        vibrator.vibrate(VibrationEffect.createOneShot(36, VibrationEffect.DEFAULT_AMPLITUDE))
-    } else {
-        @Suppress("DEPRECATION")
-        vibrator.vibrate(36)
-    }
+    val level = strength.coerceIn(1, 3)
+    val durationMs = longArrayOf(20L, 36L, 60L)[level - 1]
+    val amplitude = if (vibrator.hasAmplitudeControl()) intArrayOf(70, 150, 255)[level - 1] else VibrationEffect.DEFAULT_AMPLITUDE
+    vibrator.vibrate(VibrationEffect.createOneShot(durationMs, amplitude))
 }
 
 fun formatWhen(ms: Long): String =
@@ -56,6 +55,9 @@ fun formatWhen(ms: Long): String =
 
 fun formatDay(ms: Long): String =
     DateFormat.getDateInstance(DateFormat.MEDIUM).format(Date(ms))
+
+fun shortDate(ms: Long): String =
+    java.text.SimpleDateFormat("MMM d", java.util.Locale.getDefault()).format(Date(ms))
 
 fun daysFromNow(days: Int): Long =
     System.currentTimeMillis() + days.coerceAtLeast(0) * 86_400_000L
