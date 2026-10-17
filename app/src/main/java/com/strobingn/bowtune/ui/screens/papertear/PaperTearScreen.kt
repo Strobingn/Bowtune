@@ -17,14 +17,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.RecordVoiceOver
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -58,12 +55,36 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.strobingn.bowtune.BowTuneApp
+import com.strobingn.bowtune.data.AppPreferences
+import com.strobingn.bowtune.data.ChartData
 import com.strobingn.bowtune.data.CoachingLevel
 import com.strobingn.bowtune.data.PaperTearGuidance
 import com.strobingn.bowtune.data.PaperTearLog
 import com.strobingn.bowtune.data.TearType
 import com.strobingn.bowtune.data.advanced.AdvancedTuneIds
+import com.strobingn.bowtune.data.formatNumber
+import com.strobingn.bowtune.data.inchFraction
+import com.strobingn.bowtune.ui.charts.BarChart
+import com.strobingn.bowtune.ui.charts.BarDatum
+import com.strobingn.bowtune.ui.charts.ChartLegend
+import com.strobingn.bowtune.ui.charts.ChartPoint
+import com.strobingn.bowtune.ui.charts.LegendItem
+import com.strobingn.bowtune.ui.charts.LineChart
+import com.strobingn.bowtune.ui.charts.LineSeries
+import com.strobingn.bowtune.ui.charts.LineStyle
+import com.strobingn.bowtune.ui.charts.MarkerShape
+import com.strobingn.bowtune.ui.charts.PolarTearPlot
+import com.strobingn.bowtune.ui.charts.TearGlyph
+import com.strobingn.bowtune.ui.charts.TearPlotPoint
+import com.strobingn.bowtune.ui.charts.rememberChartPalette
+import com.strobingn.bowtune.ui.charts.seriesPatterns
+import com.strobingn.bowtune.ui.common.ChartCard
+import com.strobingn.bowtune.ui.common.NumberSlider
+import com.strobingn.bowtune.ui.common.SegmentedChoice
+import com.strobingn.bowtune.ui.common.StepState
+import com.strobingn.bowtune.ui.common.TimelineRow
 import com.strobingn.bowtune.ui.common.formatWhen
+import com.strobingn.bowtune.ui.common.shortDate
 import com.strobingn.bowtune.ui.theme.Grey20
 import com.strobingn.bowtune.ui.theme.Grey30
 import com.strobingn.bowtune.ui.theme.Grey90
@@ -72,6 +93,8 @@ import com.strobingn.bowtune.ui.theme.WarningContainerDark
 import com.strobingn.bowtune.ui.theme.WarningContainerLight
 import java.util.Locale
 import kotlinx.coroutines.launch
+
+private val PAPER_DISTANCES = listOf("4-6" to "4–6 ft", "8" to "8 ft", "10" to "10 ft", "12" to "12+ ft")
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -86,6 +109,7 @@ fun PaperTearScreen(
     val activeId by app.preferences.activeSetupId.collectAsStateWithLifecycle(0L)
     val coaching by app.preferences.coachingLevel.collectAsStateWithLifecycle(CoachingLevel.STANDARD)
     val ttsOn by app.preferences.ttsEnabled.collectAsStateWithLifecycle(false)
+    val ttsRate by app.preferences.ttsRate.collectAsStateWithLifecycle(AppPreferences.DEFAULT_TTS_RATE)
     val history by app.database.paperTearLogDao().observeAll().collectAsStateWithLifecycle(emptyList())
     val activeName = setups.firstOrNull { it.id == activeId }?.name.orEmpty()
 
@@ -99,6 +123,8 @@ fun PaperTearScreen(
     val steps = PaperTearGuidance.stepsFor(tear, coaching)
     val dark = isSystemInDarkTheme()
     var logNotes by rememberSaveable { mutableStateOf("") }
+    var magnitude by rememberSaveable { mutableStateOf<Double?>(null) }
+    var distance by rememberSaveable { mutableStateOf("4-6") }
     var speaking by remember { mutableStateOf(false) }
 
     var tts by remember { mutableStateOf<TextToSpeech?>(null) }
@@ -126,6 +152,7 @@ fun PaperTearScreen(
                 append(". ")
             }
         }
+        engine.setSpeechRate(ttsRate)
         engine.speak(text, TextToSpeech.QUEUE_FLUSH, null, "paper-tear")
         speaking = true
     }
@@ -137,7 +164,7 @@ fun PaperTearScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Paper Tear Diagnoser") },
+                title = { Text("Paper Tear Diagnoser", fontWeight = FontWeight.SemiBold) },
                 actions = {
                     IconButton(
                         onClick = {
@@ -224,19 +251,26 @@ fun PaperTearScreen(
                         containerColor = MaterialTheme.colorScheme.primaryContainer
                     )
                 ) {
-                    Column(Modifier.padding(16.dp)) {
-                        Text(
-                            tear.label,
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
-                        Spacer(Modifier.height(4.dp))
-                        Text(
-                            tear.shortDescription,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
+                    Row(
+                        Modifier.padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(14.dp)
+                    ) {
+                        TearGlyph(tear, size = 72.dp, magnitudeIn = magnitude, emphasized = true)
+                        Column(Modifier.weight(1f)) {
+                            Text(
+                                tear.label,
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                            Spacer(Modifier.height(4.dp))
+                            Text(
+                                tear.shortDescription,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        }
                     }
                 }
             }
@@ -248,35 +282,46 @@ fun PaperTearScreen(
                 )
             }
             itemsIndexed(steps) { index, step ->
-                Card(modifier = Modifier.fillMaxWidth()) {
-                    Column(Modifier.padding(14.dp)) {
-                        AssistChip(
-                            onClick = {},
-                            label = { Text("Step ${index + 1}") },
-                            leadingIcon = {
-                                Icon(
-                                    Icons.Filled.CheckCircle,
-                                    contentDescription = null,
-                                    modifier = Modifier.height(18.dp)
-                                )
-                            },
-                            colors = AssistChipDefaults.assistChipColors(
-                                containerColor = MaterialTheme.colorScheme.secondaryContainer
-                            )
-                        )
-                        Spacer(Modifier.height(8.dp))
-                        Text(step, style = MaterialTheme.typography.bodyLarge)
-                    }
+                TimelineRow(
+                    number = index + 1,
+                    state = if (index == 0) StepState.CURRENT else StepState.TODO,
+                    isLast = index == steps.lastIndex
+                ) {
+                    Text("Step ${index + 1}", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(step, style = MaterialTheme.typography.bodyLarge)
                 }
             }
             item {
-                Card(Modifier.fillMaxWidth()) {
-                    Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text("Log this tear", fontWeight = FontWeight.SemiBold)
+                Card(
+                    Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
+                ) {
+                    Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Text("Log this tear", fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.titleMedium)
                         Text(
                             "Saves to paper-tear history and attaches the active setup (${activeName.ifBlank { "none" }}).",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        if (tear != TearType.BULLET) {
+                            NumberSlider(
+                                label = "Tear length (hole → nock end)",
+                                value = magnitude,
+                                onValueChange = { magnitude = it },
+                                min = 0.0,
+                                max = 3.0,
+                                step = 0.125,
+                                unit = "in",
+                                defaultValue = 0.5,
+                                valueLabel = { "${inchFraction(it)}\"" },
+                                supporting = "Optional — feeds the tear map and drift charts."
+                            )
+                        }
+                        Text("Paper distance", style = MaterialTheme.typography.labelLarge)
+                        SegmentedChoice(
+                            options = PAPER_DISTANCES,
+                            selected = distance,
+                            onSelect = { distance = it }
                         )
                         OutlinedTextField(
                             logNotes,
@@ -292,8 +337,9 @@ fun PaperTearScreen(
                                             dateEpochMs = System.currentTimeMillis(),
                                             tearType = tear.name,
                                             setupName = activeName,
-                                            distanceFt = "4-6",
-                                            notes = logNotes.trim()
+                                            distanceFt = distance,
+                                            notes = logNotes.trim(),
+                                            magnitudeIn = if (tear == TearType.BULLET) 0.0 else magnitude
                                         )
                                     )
                                     logNotes = ""
@@ -315,18 +361,24 @@ fun PaperTearScreen(
                     )
                 }
             } else {
+                item { TearHistoryCharts(history) }
                 items(history, key = { it.id }) { log ->
-                    Card(Modifier.fillMaxWidth()) {
+                    val type = TearType.fromStored(log.tearType)
+                    Card(
+                        Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow)
+                    ) {
                         Row(
                             Modifier.padding(12.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
+                            if (type != null) TearGlyph(type, size = 40.dp, magnitudeIn = log.magnitudeIn)
                             Column(Modifier.weight(1f)) {
-                                val label = TearType.entries.firstOrNull { it.name == log.tearType }?.label
-                                    ?: log.tearType
-                                Text(label, fontWeight = FontWeight.SemiBold)
+                                Text(type?.label ?: log.tearType, fontWeight = FontWeight.SemiBold)
                                 Text(
-                                    "${formatWhen(log.dateEpochMs)} · ${log.setupName.ifBlank { "no setup" }} · ${log.distanceFt} ft",
+                                    "${formatWhen(log.dateEpochMs)} · ${log.setupName.ifBlank { "no setup" }} · ${log.distanceFt} ft" +
+                                        (log.magnitudeIn?.takeIf { it > 0 }?.let { " · ${inchFraction(it)}\"" } ?: ""),
                                     style = MaterialTheme.typography.bodySmall
                                 )
                                 if (log.notes.isNotBlank()) {
@@ -366,6 +418,78 @@ fun PaperTearScreen(
                     modifier = Modifier.fillMaxWidth()
                 ) { Text("Stop read-aloud") }
             }
+        }
+    }
+}
+
+@Composable
+private fun TearHistoryCharts(history: List<PaperTearLog>) {
+    val palette = rememberChartPalette()
+    val oldestFirst = history.sortedBy { it.dateEpochMs }
+    val vectors = oldestFirst.mapNotNull { log -> ChartData.tearVector(log)?.let { log to it } }
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        ChartCard(
+            title = "Tear map",
+            subtitle = "Nock direction × tear length. Newest is ringed with an arrow; hollow = no length logged."
+        ) {
+            PolarTearPlot(
+                points = vectors.mapIndexed { i, (_, v) ->
+                    TearPlotPoint(
+                        vector = v,
+                        recency = if (vectors.size <= 1) 1f else i / (vectors.size - 1f),
+                        latest = i == vectors.lastIndex
+                    )
+                }
+            )
+        }
+        ChartCard(
+            title = "Tear drift over sessions",
+            subtitle = "Inches from a bullet hole. + = nock right / nock high. Aim for both lines on zero."
+        ) {
+            LineChart(
+                series = listOf(
+                    LineSeries(
+                        "Left ↔ right",
+                        vectors.map { (log, v) -> ChartPoint(log.dateEpochMs.toDouble(), v.x) },
+                        LineStyle.SOLID,
+                        MarkerShape.CIRCLE,
+                        palette.ink
+                    ),
+                    LineSeries(
+                        "Low ↔ high",
+                        vectors.map { (log, v) -> ChartPoint(log.dateEpochMs.toDouble(), v.y) },
+                        LineStyle.DASHED,
+                        MarkerShape.SQUARE,
+                        palette.mid
+                    )
+                ),
+                yUnit = "\"",
+                xLabel = { shortDate(it.toLong()) },
+                band = -0.25..0.25,
+                bandLabel = "bullet zone",
+                description = "Tear drift over ${vectors.size} logs"
+            )
+            ChartLegend(
+                listOf(
+                    LegendItem("Left ↔ right", palette.ink, LineStyle.SOLID, MarkerShape.CIRCLE),
+                    LegendItem("Low ↔ high", palette.mid, LineStyle.DASHED, MarkerShape.SQUARE)
+                )
+            )
+        }
+        val counts = ChartData.tearTypeCounts(history)
+        ChartCard(title = "Tear types", subtitle = "${history.size} logged · ${formatNumber((ChartData.bulletRate(history, history.size) ?: 0.0) * 100, 0)}% bullet") {
+            BarChart(
+                bars = counts.entries.mapIndexed { i, (type, n) ->
+                    BarDatum(
+                        label = shortLabel(type),
+                        value = n.toDouble(),
+                        pattern = if (type == TearType.BULLET) com.strobingn.bowtune.ui.charts.FillPattern.SOLID else seriesPatterns[1 + i % (seriesPatterns.size - 1)],
+                        emphasized = type == TearType.BULLET
+                    )
+                },
+                valueFormatter = { formatNumber(it, 0) },
+                description = "Tear type counts"
+            )
         }
     }
 }

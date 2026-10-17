@@ -56,6 +56,9 @@ fun formatWhen(ms: Long): String =
 fun formatDay(ms: Long): String =
     DateFormat.getDateInstance(DateFormat.MEDIUM).format(Date(ms))
 
+fun shortDate(ms: Long): String =
+    java.text.SimpleDateFormat("MMM d", java.util.Locale.getDefault()).format(Date(ms))
+
 fun daysFromNow(days: Int): Long =
     System.currentTimeMillis() + days.coerceAtLeast(0) * 86_400_000L
 

@@ -26,7 +26,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
@@ -42,6 +41,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.strobingn.bowtune.ui.charts.SegmentedTimeline
 import com.strobingn.bowtune.data.advanced.AdvancedGuide
 import com.strobingn.bowtune.data.advanced.AdvancedSection
 import com.strobingn.bowtune.data.advanced.AdvancedSectionKind
@@ -428,10 +428,7 @@ fun AdvancedTuneWalkthroughScreen(
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.SemiBold
             )
-            LinearProgressIndicator(
-                progress = { (index + 1f) / steps.size },
-                modifier = Modifier.fillMaxWidth()
-            )
+            SegmentedTimeline(weights = steps.map { 1 }, currentIndex = index)
             AssistChip(onClick = {}, label = { Text("One variable at a time") })
             LazyColumn(
                 modifier = Modifier.weight(1f),

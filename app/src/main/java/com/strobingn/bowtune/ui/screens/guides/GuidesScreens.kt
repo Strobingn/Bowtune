@@ -1,6 +1,16 @@
 package com.strobingn.bowtune.ui.screens.guides
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material3.CardDefaults
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -54,6 +64,9 @@ fun GuidesListScreen(
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+            }
+            item {
+                TuningOrderFlow(onOpenAdvancedGuide)
             }
             item {
                 Text(
@@ -213,6 +226,64 @@ fun GuideDetailScreen(
                     }
                 }
             }
+        }
+    }
+}
+
+/** Field-first tuning order as a tappable flow: each node opens its Advanced guide. */
+@Composable
+private fun TuningOrderFlow(onOpen: (String) -> Unit) {
+    val steps = listOf(
+        "Paper" to AdvancedTuneIds.PAPER,
+        "Bare shaft" to AdvancedTuneIds.BARE_SHAFT,
+        "Walk-back" to AdvancedTuneIds.WALKBACK,
+        "Broadhead" to AdvancedTuneIds.BROADHEAD
+    )
+    val cs = MaterialTheme.colorScheme
+    Card(colors = CardDefaults.cardColors(containerColor = cs.surfaceContainerLow)) {
+        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Text("Tuning order", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                steps.forEachIndexed { i, (label, id) ->
+                    Column(
+                        Modifier
+                            .weight(1f)
+                            .clickable { onOpen(id) },
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Box(
+                            Modifier
+                                .size(40.dp)
+                                .background(if (i == 0) cs.onSurface else cs.surfaceContainerHighest, CircleShape)
+                                .border(1.5.dp, cs.onSurface, CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                "${i + 1}",
+                                fontWeight = FontWeight.Bold,
+                                color = if (i == 0) cs.surface else cs.onSurface
+                            )
+                        }
+                        Text(label, style = MaterialTheme.typography.labelMedium, textAlign = TextAlign.Center)
+                    }
+                    if (i < steps.lastIndex) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowForward,
+                            contentDescription = null,
+                            tint = cs.outline,
+                            modifier = Modifier
+                                .size(16.dp)
+                                .padding(bottom = 18.dp)
+                        )
+                    }
+                }
+            }
+            Text(
+                "Tap a step to open its walkthrough. One variable at a time.",
+                style = MaterialTheme.typography.bodySmall,
+                color = cs.onSurfaceVariant
+            )
         }
     }
 }

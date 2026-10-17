@@ -336,7 +336,8 @@ fun StackedBar(
     segments: List<StackSegment>,
     modifier: Modifier = Modifier,
     height: Dp = 26.dp,
-    unit: String = ""
+    unit: String = "",
+    showLegend: Boolean = true
 ) {
     val palette = rememberChartPalette()
     val total = segments.sumOf { max(it.value, 0.0) }
@@ -358,11 +359,13 @@ fun StackedBar(
                 x += w
             }
         }
-        ChartLegend(
-            segments.mapIndexed { i, s ->
-                LegendItem("${s.label} ${formatNumber(s.value, 1)}$unit", palette.series(i % 2), pattern = s.pattern)
-            }
-        )
+        if (showLegend) {
+            ChartLegend(
+                segments.mapIndexed { i, s ->
+                    LegendItem("${s.label} ${formatNumber(s.value, 1)}$unit", palette.series(i % 2), pattern = s.pattern)
+                }
+            )
+        }
     }
 }
 

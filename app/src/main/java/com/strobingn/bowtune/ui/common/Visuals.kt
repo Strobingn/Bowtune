@@ -1,13 +1,22 @@
 package com.strobingn.bowtune.ui.common
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.Card
@@ -127,6 +136,72 @@ fun StatRow(tiles: List<Triple<String, String, String>>, modifier: Modifier = Mo
         tiles.forEach { (label, value, unit) ->
             StatTile(label = label, value = value, unit = unit, modifier = Modifier.weight(1f))
         }
+    }
+}
+
+enum class StepState { DONE, CURRENT, TODO }
+
+/**
+ * One row of a vertical timeline: a numbered node with a connector to the next row.
+ * DONE nodes are solid, CURRENT is ringed, TODO is a dotted outline.
+ */
+@Composable
+fun TimelineRow(
+    number: Int,
+    state: StepState,
+    isLast: Boolean,
+    modifier: Modifier = Modifier,
+    content: @Composable ColumnScope.() -> Unit
+) {
+    val cs = MaterialTheme.colorScheme
+    Row(modifier.height(IntrinsicSize.Min)) {
+        Box(
+            Modifier
+                .width(40.dp)
+                .fillMaxHeight(),
+            contentAlignment = Alignment.TopCenter
+        ) {
+            Canvas(Modifier.matchParentSize()) {
+                val cx = size.width / 2
+                val r = 13.dp.toPx()
+                val cy = r + 2.dp.toPx()
+                if (!isLast) {
+                    drawLine(
+                        if (state == StepState.DONE) cs.onSurface else cs.outlineVariant,
+                        Offset(cx, cy + r),
+                        Offset(cx, size.height),
+                        2.dp.toPx(),
+                        pathEffect = if (state == StepState.DONE) null else PathEffect.dashPathEffect(floatArrayOf(6f, 6f))
+                    )
+                }
+                when (state) {
+                    StepState.DONE -> drawCircle(cs.onSurface, r, Offset(cx, cy))
+                    StepState.CURRENT -> {
+                        drawCircle(cs.surfaceContainerHighest, r, Offset(cx, cy))
+                        drawCircle(cs.onSurface, r, Offset(cx, cy), style = Stroke(2.5.dp.toPx()))
+                    }
+                    StepState.TODO -> drawCircle(
+                        cs.outline,
+                        r,
+                        Offset(cx, cy),
+                        style = Stroke(1.5.dp.toPx(), pathEffect = PathEffect.dashPathEffect(floatArrayOf(4f, 4f)))
+                    )
+                }
+            }
+            Text(
+                if (state == StepState.DONE) "✓" else number.toString(),
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.Bold,
+                color = if (state == StepState.DONE) cs.surface else cs.onSurface,
+                modifier = Modifier.padding(top = 5.dp)
+            )
+        }
+        Column(
+            Modifier
+                .weight(1f)
+                .padding(start = 8.dp, bottom = if (isLast) 0.dp else 14.dp, top = 4.dp),
+            content = content
+        )
     }
 }
 

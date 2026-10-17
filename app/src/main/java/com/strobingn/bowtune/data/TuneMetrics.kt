@@ -134,22 +134,22 @@ val RIGHT_WORDS = listOf("right", "r")
 /** "+0.5 high" style strings for vertical offsets (+ = high). */
 fun describeVertical(inches: Double): String = when {
     abs(inches) < 0.005 -> "0 level"
-    inches > 0 -> "${formatNumber(inches)} high"
-    else -> "${formatNumber(-inches)} low"
+    inches > 0 -> "${formatNumber(inches, 3)} high"
+    else -> "${formatNumber(-inches, 3)} low"
 }
 
 /** Horizontal offsets where + = left (bare / broadhead convention). */
 fun describeLeftPositive(inches: Double): String = when {
     abs(inches) < 0.005 -> "0 center"
-    inches > 0 -> "${formatNumber(inches)} left"
-    else -> "${formatNumber(-inches)} right"
+    inches > 0 -> "${formatNumber(inches, 3)} left"
+    else -> "${formatNumber(-inches, 3)} right"
 }
 
 /** Horizontal offsets where + = right (walk-back convention). */
 fun describeRightPositive(inches: Double): String = when {
     abs(inches) < 0.005 -> "0 center"
-    inches > 0 -> "${formatNumber(inches)} right"
-    else -> "${formatNumber(-inches)} left"
+    inches > 0 -> "${formatNumber(inches, 3)} right"
+    else -> "${formatNumber(-inches, 3)} left"
 }
 
 /** Common inch fractions for tuning offsets, e.g. 0.125 → "1/8". Falls back to decimals. */

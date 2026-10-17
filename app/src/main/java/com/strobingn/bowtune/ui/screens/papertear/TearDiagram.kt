@@ -1,85 +1,51 @@
 package com.strobingn.bowtune.ui.screens.papertear
 
-import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import android.graphics.Paint
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.nativeCanvas
-import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.strobingn.bowtune.data.TearType
+import com.strobingn.bowtune.ui.charts.TearGlyph
 
+/**
+ * 3×3 tear picker laid out the way the nock end moves (top row = nock high).
+ * Each cell draws the tear as it looks on paper.
+ */
 @Composable
 fun TearPickerDiagram(
     selected: TearType,
     onSelect: (TearType) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val outline = MaterialTheme.colorScheme.outline
-    val fill = MaterialTheme.colorScheme.primary.copy(alpha = 0.28f)
-    val labelColor = MaterialTheme.colorScheme.onSurface
-    Column(modifier) {
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(
             "Tap the hole you see (nock direction). Center is a bullet.",
             style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(bottom = 8.dp)
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-        val outlineArgb = android.graphics.Color.argb(
-            (outline.alpha * 255).toInt(),
-            (outline.red * 255).toInt(),
-            (outline.green * 255).toInt(),
-            (outline.blue * 255).toInt()
-        )
-        Canvas(
-            Modifier
-                .fillMaxWidth()
-                .aspectRatio(1.15f)
-                .pointerInput(selected) {
-                    detectTapGestures { tap ->
-                        val col = (tap.x / size.width * 3).toInt().coerceIn(0, 2)
-                        val row = (tap.y / size.height * 3).toInt().coerceIn(0, 2)
-                        onSelect(zoneAt(col, row))
-                    }
-                }
-        ) {
-            val cw = size.width / 3f
-            val ch = size.height / 3f
-            val paint = Paint().apply {
-                color = outlineArgb
-                textAlign = Paint.Align.CENTER
-                textSize = 28f
-                isAntiAlias = true
-            }
-            val native = drawContext.canvas.nativeCanvas
-            for (row in 0..2) {
+        for (row in 0..2) {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 for (col in 0..2) {
                     val tear = zoneAt(col, row)
-                    val topLeft = Offset(col * cw, row * ch)
-                    if (tear == selected) {
-                        drawRect(fill, topLeft, Size(cw, ch))
-                    }
-                    drawRect(
-                        outline,
-                        topLeft,
-                        Size(cw, ch),
-                        style = Stroke(width = 2.dp.toPx())
-                    )
-                    native.drawText(
-                        shortLabel(tear),
-                        topLeft.x + cw / 2f,
-                        topLeft.y + ch / 2f + 10f,
-                        paint
+                    TearCell(
+                        tear = tear,
+                        selected = tear == selected,
+                        onClick = { onSelect(tear) },
+                        modifier = Modifier.weight(1f)
                     )
                 }
             }
@@ -87,13 +53,53 @@ fun TearPickerDiagram(
         Text(
             selected.label + " — " + selected.shortDescription,
             style = MaterialTheme.typography.bodyMedium,
-            color = labelColor,
-            modifier = Modifier.padding(top = 8.dp)
+            color = MaterialTheme.colorScheme.onSurface
         )
     }
 }
 
-private fun shortLabel(tear: TearType): String = when (tear) {
+@Composable
+private fun TearCell(
+    tear: TearType,
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier
+) {
+    val cs = MaterialTheme.colorScheme
+    Card(
+        modifier = modifier
+            .aspectRatio(1f)
+            .selectable(selected = selected, onClick = onClick, role = Role.RadioButton),
+        colors = CardDefaults.cardColors(
+            containerColor = if (selected) cs.inverseSurface else cs.surfaceContainerLow,
+            contentColor = if (selected) cs.inverseOnSurface else cs.onSurface
+        ),
+        border = BorderStroke(if (selected) 2.dp else 1.dp, if (selected) cs.onSurface else cs.outlineVariant)
+    ) {
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .padding(6.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.SpaceEvenly
+        ) {
+            if (selected) {
+                MaterialTheme(colorScheme = cs.copy(onSurface = cs.inverseOnSurface, onSurfaceVariant = cs.inverseOnSurface, outlineVariant = cs.outline)) {
+                    TearGlyph(tear, size = 52.dp, emphasized = true)
+                }
+            } else {
+                TearGlyph(tear, size = 52.dp)
+            }
+            Text(
+                shortLabel(tear),
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium
+            )
+        }
+    }
+}
+
+fun shortLabel(tear: TearType): String = when (tear) {
     TearType.BULLET -> "Bullet"
     TearType.NOCK_HIGH -> "High"
     TearType.NOCK_LOW -> "Low"
