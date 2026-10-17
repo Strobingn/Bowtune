@@ -45,7 +45,8 @@ object TuneHints {
 
     fun broadhead(
         bhLeftRightIn: Double?,
-        bhHighLowIn: Double?
+        bhHighLowIn: Double?,
+        rightHanded: Boolean = true
     ): String {
         if (bhLeftRightIn == null && bhHighLowIn == null) {
             return "Compare broadhead POI to field points at 20–40 yd. Same point weight when you can."
@@ -53,15 +54,17 @@ object TuneHints {
         val bits = mutableListOf<String>()
         bhHighLowIn?.let { v ->
             bits += when {
-                v > 1.0 -> "Broadheads hit high — tiny nock-up or confirm tip weight / FOC vs the field point."
-                v < -1.0 -> "Broadheads hit low — tiny nock-down or check FOC / blade planing."
+                v > 1.0 -> "Broadheads hit high — tiny nock-up (or lower rest slightly) and confirm tip weight / FOC vs the field point."
+                v < -1.0 -> "Broadheads hit low — tiny nock-down (or raise rest slightly) and check FOC / blade planing."
                 else -> "Vertical BH vs field is close."
             }
         }
         bhLeftRightIn?.let { h ->
+            val left = if (rightHanded) h > 1.0 else h < -1.0
+            val right = if (rightHanded) h < -1.0 else h > 1.0
             bits += when {
-                h > 1.0 -> "Broadheads left — rest right a click, or Limb Shift toward L. Recheck paper first if the hole was not a bullet."
-                h < -1.0 -> "Broadheads right — rest left (in toward the riser), or Limb Shift toward R. Check vane clearance."
+                left -> "Broadheads left — rest right a click, or Limb Shift toward L. Recheck paper first if the hole was not a bullet."
+                right -> "Broadheads right — rest left (in toward the riser), or Limb Shift toward R. Check vane clearance."
                 else -> "Horizontal BH vs field is close."
             }
         }

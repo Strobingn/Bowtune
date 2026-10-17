@@ -244,10 +244,10 @@ internal object DynamicSpineAdvanced {
                         what = "Each line is a separate session.",
                         why = "See Bare shaft spine walkthrough for RH CR left=weak.",
                         how = listOf(
-                            "Point/insert +25–50 gr → weaker dynamic. First lever for a persistent RH CR bare-left after rest is sane.",
-                            "Point −25–50 gr → stiffer dynamic. Only after clearance and rest-left have lost.",
+                            "Point/insert −25–50 gr → stiffer dynamic. First reversible lever for a persistent RH CR bare-left (weak) after rest is sane.",
+                            "Point/insert +25–50 gr → weaker dynamic. Use after clearance and rest-left have ruled out contact on a true stiff reaction.",
                             "Cut 1/2 in → stiffer, not reversible. Do this on one test shaft.",
-                            "DW ±1–2 lb → weaker when you add weight. Recheck timing/stops; this is a bow change.",
+                            "DW ±1–2 lb → weaker when you add weight, stiffer when you drop weight. Recheck timing/stops; this is a bow change.",
                             "FOC up (more front, same shaft) → weaker dynamic plus more stability once flying. Broadheads like FOC; indoor speed does not.",
                             "Nock/serving: fit first, clock second. Do not call pinch “weak spine.”"
                         ),

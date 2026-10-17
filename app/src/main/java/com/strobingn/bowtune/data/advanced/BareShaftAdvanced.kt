@@ -240,8 +240,8 @@ internal object BareShaftAdvanced {
                         what = "Weaker dynamic: heavier point/insert, longer shaft, more draw weight, more aggressive launch. Stiffer dynamic: lighter point, shorter cut, less DW, or a stiffer static spine.",
                         why = "25–50 gr point change is reversible and cheaper than a dozen 250s. Cutting 1/2 in is not reversible. Dropping DW changes sight tapes and hunting KE — know that going in.",
                         how = listOf(
-                            "WEAK (RH CR bare left persists): add 25–50 gr up front (point or insert) and re-bare, or drop DW 1–2 lb if the bow allows, or step to a stiffer static spine if the chart and the bare both scream it.",
-                            "After a true stiff diagnosis (clearance and rest-left already done): add point weight or length, or a weaker static spine.",
+                            "WEAK (RH CR bare left persists): reduce front weight by 25–50 gr (lighter point or insert) and re-bare, or drop DW 1–2 lb if the bow allows, or step to a stiffer static spine if the chart and the bare both scream it.",
+                            "After a true stiff diagnosis (clearance and rest-left already done): add 25–50 gr point weight, increase DW 1–2 lb, or use a longer/weaker static spine.",
                             "Re-shoot two 20 yd passes after that one change. Do not also click the rest “just to help.”",
                             "If the bare walks toward the fletched group, you picked the right direction. If it walks away, revert the grain / DW / shaft."
                         ),
