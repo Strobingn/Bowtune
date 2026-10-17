@@ -11,10 +11,11 @@ import com.strobingn.bowtune.ui.common.ChartCard
 
 /** FOC bands from [com.strobingn.bowtune.data.Calculators.foc]. */
 val FocBands = listOf(
-    GaugeBand(0.0, 7.0, "Low", FillPattern.DOTS),
-    GaugeBand(7.0, 11.0, "Target", FillPattern.DIAGONAL),
-    GaugeBand(11.0, 16.0, "Hunt", FillPattern.CROSSHATCH),
-    GaugeBand(16.0, 25.0, "High", FillPattern.HORIZONTAL)
+    GaugeBand(0.0, 6.0, "Low", FillPattern.DOTS),
+    GaugeBand(6.0, 10.0, "Target", FillPattern.DIAGONAL),
+    GaugeBand(10.0, 15.0, "Hunt", FillPattern.CROSSHATCH),
+    GaugeBand(15.0, 20.0, "High", FillPattern.HORIZONTAL),
+    GaugeBand(20.0, 25.0, "V.high", FillPattern.SOLID)
 )
 
 /** Point → nock order, each component with its own texture. */

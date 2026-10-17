@@ -10,9 +10,12 @@ data class TimedValue(val epochMs: Long, val value: Double)
 /** Parsed "Score / group" text from a session. */
 sealed interface ScoreOrGroup {
     data class Score(val value: Double) : ScoreOrGroup
-    data class Group(val width: Double, val height: Double?) : ScoreOrGroup {
-        /** Largest dimension — the usual "group size" figure. */
-        val size: Double get() = max(width, height ?: width)
+    data class Group(val width: Double, val height: Double?, val spread: Double? = null) : ScoreOrGroup {
+        /**
+         * Group size: the measured center-to-center extreme spread when known (camera
+         * group measure), otherwise the larger of width / height.
+         */
+        val size: Double get() = spread ?: max(width, height ?: width)
     }
 }
 
@@ -73,6 +76,9 @@ object ChartData {
     fun scoreOrGroupFor(session: TuneSession): ScoreOrGroup? {
         val m = TuneMetrics.decode(session.metricsJson)
         m[TuneMetrics.SCORE]?.let { return ScoreOrGroup.Score(it) }
+        m[TuneMetrics.GROUP_SPREAD]?.let { spread ->
+            return ScoreOrGroup.Group(m[TuneMetrics.GROUP_W] ?: spread, m[TuneMetrics.GROUP_H], spread)
+        }
         m[TuneMetrics.GROUP_W]?.let { return ScoreOrGroup.Group(it, m[TuneMetrics.GROUP_H]) }
         return parseScoreOrGroup(session.scoreOrGroup)
     }

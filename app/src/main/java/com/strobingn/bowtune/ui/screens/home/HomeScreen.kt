@@ -88,7 +88,9 @@ import com.strobingn.bowtune.ui.charts.ProgressRing
 import com.strobingn.bowtune.ui.charts.RangeScale
 import com.strobingn.bowtune.ui.charts.ReferenceLine
 import com.strobingn.bowtune.ui.charts.TearGlyph
+import com.strobingn.bowtune.ui.common.ArrowBalanceSketch
 import com.strobingn.bowtune.ui.common.ChartCard
+import com.strobingn.bowtune.ui.common.EnergyGauge
 import com.strobingn.bowtune.ui.common.FormSection
 import com.strobingn.bowtune.ui.common.HintCard
 import com.strobingn.bowtune.ui.common.LabeledStepSlider
@@ -116,7 +118,8 @@ fun HomeScreen(
     onOpenGear: () -> Unit,
     onOpenChecklist: () -> Unit,
     onOpenSessions: () -> Unit,
-    onOpenAdvancedLibrary: () -> Unit = {}
+    onOpenAdvancedLibrary: () -> Unit = {},
+    onOpenGroupMeasure: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val app = context.applicationContext as BowTuneApp
@@ -379,6 +382,13 @@ fun HomeScreen(
                     }
                 }
                 item {
+                    ChartCard(
+                        title = "Measure a group",
+                        subtitle = "Photograph the arrow group, fit a face or a ruler, tap each shaft, and record the center-to-center size.",
+                        onClick = onOpenGroupMeasure
+                    ) {}
+                }
+                item {
                     ChartCard(title = "Up next", onClick = onOpenSessions) {
                         Text(
                             nextDue?.let { "Next cam / tune check ${formatDay(it)}" }
@@ -438,7 +448,8 @@ fun HomeScreen(
             HomeTool.SPINE -> ToolPane(padding) {
                 SpineTool(
                     defaultDw = active?.drawWeightLbs.orEmpty(),
-                    defaultLen = active?.drawLengthIn.orEmpty()
+                    drawLength = active?.drawLengthIn.orEmpty(),
+                    defaultIbo = active?.iboSpeedFps.orEmpty()
                 )
             }
             HomeTool.KE -> ToolPane(padding) {
@@ -775,6 +786,7 @@ private fun FocTool(sample: ArrowShaft?) {
         unit = "%",
         caption = "Front of center"
     )
+    ArrowBalanceSketch(length.toDoubleOrNullLenient(), balance.toDoubleOrNullLenient())
     ArrowWeightBreakdown(
         arrowSegments(
             shaft = shaft.toDoubleOrNullLenient(),
@@ -811,30 +823,68 @@ private fun FocTool(sample: ArrowShaft?) {
 }
 
 @Composable
-private fun SpineTool(defaultDw: String, defaultLen: String) {
+private fun SpineTool(defaultDw: String, drawLength: String, defaultIbo: String) {
     var dw by rememberSaveable { mutableStateOf(defaultDw.ifBlank { "60" }) }
-    var length by rememberSaveable { mutableStateOf(defaultLen.ifBlank { "28" }) }
+    var length by rememberSaveable { mutableStateOf("") }
     var point by rememberSaveable { mutableStateOf("100") }
+    var insert by rememberSaveable { mutableStateOf("") }
+    var speed by rememberSaveable { mutableStateOf(defaultIbo) }
     val result = Calculators.spine(
         dw.toDoubleOrNullLenient(),
         length.toDoubleOrNullLenient(),
-        point.toDoubleOrNullLenient()
+        point.toDoubleOrNullLenient(),
+        insert.toDoubleOrNullLenient(),
+        speed.toDoubleOrNullLenient()
     )
-    ChartCard(title = result.suggestedRange, subtitle = "Starting band — confirm with brand charts and paper at 4-6 ft") {
+    ChartCard(title = result.suggestedRange, subtitle = "Easton hunting chart 301055-A start — confirm on paper at 4-6 ft") {
         RangeScale(
             min = 150.0,
-            max = 900.0,
-            low = result.stiffSpine?.toDouble(),
-            high = result.weakSpine?.toDouble(),
+            max = 750.0,
+            low = result.stiffer?.toDouble(),
+            high = result.weaker?.toDouble(),
             reversed = true,
             leftCaption = "← weaker (higher #)",
             rightCaption = "stiffer (lower #) →"
         )
     }
     FormSection("Inputs") {
-        NumberSliderField("Draw weight", dw, { dw = it }, 20.0, 90.0, 1.0, unit = "lb", defaultValue = 60.0)
-        NumberSliderField("Arrow length", length, { length = it }, 24.0, 34.0, 0.25, unit = "in", defaultValue = 28.0)
+        NumberSliderField("Peak draw weight", dw, { dw = it }, 15.0, 110.0, 1.0, unit = "lb", defaultValue = 60.0)
+        NumberSliderField(
+            "Cut length, nock throat to shaft end",
+            length,
+            { length = it },
+            23.0,
+            34.0,
+            0.25,
+            unit = "in",
+            defaultValue = 28.0,
+            supporting = if (drawLength.isNotBlank()) {
+                "This bow's draw length is $drawLength in. That is not the cut length — measure the shaft."
+            } else {
+                "Measure the shaft, not your draw length; the point is not included."
+            }
+        )
         NumberSliderField("Point weight", point, { point = it }, 50.0, 300.0, 5.0, unit = "gr", defaultValue = 100.0)
+        NumberSliderField(
+            "Insert / outsert (optional)",
+            insert,
+            { insert = it },
+            0.0,
+            120.0,
+            1.0,
+            unit = "gr",
+            defaultValue = 16.0
+        )
+        NumberSliderField(
+            "ATA / IBO speed (optional)",
+            speed,
+            { speed = it },
+            250.0,
+            380.0,
+            1.0,
+            unit = "fps",
+            defaultValue = 330.0
+        )
     }
     result.notes.forEach { Text("• $it", style = MaterialTheme.typography.bodySmall) }
 }
@@ -855,6 +905,7 @@ private fun EnergyTool(defaultSpeed: String) {
             Triple("Momentum", result.momentumSlugFtS?.let { formatNumber(it, 3) } ?: "—", "slug·ft/s")
         )
     )
+    EnergyGauge(result.kineticFtLbs)
     if (g != null && v != null && g > 0 && v > 0) {
         val deltas = listOf(-100, -50, 0, 50, 100)
         val whatIf = deltas.mapNotNull { d ->
@@ -878,7 +929,7 @@ private fun EnergyTool(defaultSpeed: String) {
                 references = listOf(
                     ReferenceLine(25.0, "25 small game", LineStyle.DOTTED),
                     ReferenceLine(40.0, "40 deer", LineStyle.DASHED),
-                    ReferenceLine(55.0, "55 elk", LineStyle.DASH_DOT)
+                    ReferenceLine(65.0, "65 elk", LineStyle.DASH_DOT)
                 ),
                 description = "Kinetic energy at different arrow weights"
             )

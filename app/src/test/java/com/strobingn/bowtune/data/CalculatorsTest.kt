@@ -23,17 +23,17 @@ class CalculatorsTest {
     @Test
     fun spineExposesNumericBand() {
         val r = Calculators.spine(drawWeightLbs = 62.0, arrowLengthIn = 28.0, pointWeightGr = 100.0)
-        assertEquals(340, r.weakSpine)
-        assertEquals(300, r.stiffSpine)
-        assertTrue(r.suggestedRange.startsWith("340–300"))
-        assertTrue(r.weakSpine!! >= r.stiffSpine!!)
+        assertEquals(350, r.weaker)
+        assertEquals(300, r.stiffer)
+        assertTrue(r.suggestedRange.startsWith("350–300"))
+        assertTrue(r.weaker!! >= r.stiffer!!)
     }
 
     @Test
     fun spineOutOfRangeHasNoBand() {
         val r = Calculators.spine(drawWeightLbs = 10.0, arrowLengthIn = null, pointWeightGr = null)
-        assertNull(r.weakSpine)
-        assertNull(r.stiffSpine)
+        assertNull(r.weaker)
+        assertNull(r.stiffer)
     }
 
     @Test

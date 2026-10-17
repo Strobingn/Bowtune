@@ -125,7 +125,7 @@ fun ArrowsPane(setups: List<BowSetup>, activeId: Long) {
         } else {
             val withFoc = arrows.map { it to focFor(it) }
             item {
-                ChartCard(title = "FOC by arrow", subtitle = "Dashed lines mark the 7 / 11 / 16% band edges") {
+                ChartCard(title = "FOC by arrow", subtitle = "Reference lines mark the 6 / 10 / 15% band edges") {
                     BarChart(
                         bars = withFoc.mapIndexed { i, (arrow, foc) ->
                             BarDatum(
@@ -136,9 +136,9 @@ fun ArrowsPane(setups: List<BowSetup>, activeId: Long) {
                             )
                         },
                         references = listOf(
-                            ReferenceLine(7.0, "7%", LineStyle.DOTTED),
-                            ReferenceLine(11.0, "11%", LineStyle.DASHED),
-                            ReferenceLine(16.0, "16%", LineStyle.DASH_DOT)
+                            ReferenceLine(6.0, "6%", LineStyle.DOTTED),
+                            ReferenceLine(10.0, "10%", LineStyle.DASHED),
+                            ReferenceLine(15.0, "15%", LineStyle.DASH_DOT)
                         ),
                         description = "FOC percent per arrow"
                     )

@@ -13,6 +13,8 @@ object TuneMetrics {
     const val SCORE = "score"
     const val GROUP_W = "groupW"
     const val GROUP_H = "groupH"
+    /** Center-to-center extreme spread (longest gap between two arrows), inches. */
+    const val GROUP_SPREAD = "groupSpread"
     /** Bare vs fletched, inches. + = bare high. */
     const val BARE_V = "bareV"
     /** Bare vs fletched, inches. + = bare left (RH archer). */

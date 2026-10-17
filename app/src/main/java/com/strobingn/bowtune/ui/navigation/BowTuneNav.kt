@@ -82,6 +82,12 @@ fun BowTuneNavHost(
     ) {
         composable(TopLevelDestination.Home.route) {
             HomeScreen(
+                onOpenGroupMeasure = {
+                    navController.navigate("vision?mode=group") {
+                        popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                        launchSingleTop = true
+                    }
+                },
                 onOpenPaperTear = {
                     navController.navigate(TopLevelDestination.PaperTear.route) {
                         popUpTo(navController.graph.findStartDestination().id) { saveState = true }
@@ -141,6 +147,12 @@ fun BowTuneNavHost(
                 onOpenAdvanced = { id -> navController.navigate(AdvancedTuneRoutes.detail(id)) },
                 onOpenAdvancedLibrary = {
                     navController.navigate(AdvancedTuneRoutes.LIST)
+                },
+                onMeasureGroup = {
+                    navController.navigate("vision?mode=group") {
+                        popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                        launchSingleTop = true
+                    }
                 }
             )
         }
@@ -158,8 +170,17 @@ fun BowTuneNavHost(
                 onBack = { navController.popBackStack() }
             )
         }
-        composable(TopLevelDestination.Vision.route) {
+        composable(
+            route = "vision?mode={mode}",
+            arguments = listOf(
+                navArgument("mode") {
+                    type = NavType.StringType
+                    defaultValue = ""
+                }
+            )
+        ) { entry ->
             ShotVisionScreen(
+                startOnGroup = entry.arguments?.getString("mode") == "group",
                 onOpenPaperTear = { tear: TearType ->
                     navController.navigate(PaperTearRoutes.withTear(tear.name)) {
                         popUpTo(navController.graph.findStartDestination().id) {

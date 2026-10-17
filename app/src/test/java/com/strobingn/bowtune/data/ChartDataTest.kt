@@ -45,6 +45,22 @@ class ChartDataTest {
     }
 
     @Test
+    fun cameraGroupSpreadIsTheGroupSize() {
+        val measured = session(
+            5,
+            score = "1.4 in",
+            metrics = mapOf(TuneMetrics.GROUP_SPREAD to 1.4, TuneMetrics.GROUP_W to 1.1, TuneMetrics.GROUP_H to 0.9)
+        )
+        val group = ChartData.scoreOrGroupFor(measured) as ScoreOrGroup.Group
+        assertEquals(1.4, group.size, 1e-9)
+        assertEquals(1.1, group.width, 1e-9)
+        assertEquals(0.9, group.height!!, 1e-9)
+        val legacyCamera = session(6, score = "1.4 in")
+        assertEquals(1.4, (ChartData.scoreOrGroupFor(legacyCamera) as ScoreOrGroup.Group).size, 1e-9)
+        assertEquals(listOf(1.4, 1.4), ChartData.groupTrend(listOf(measured, legacyCamera)).map { it.second.size })
+    }
+
+    @Test
     fun trendsAreOldestFirstAndSplitByType() {
         val sessions = listOf(
             session(3 * day, "300"),
