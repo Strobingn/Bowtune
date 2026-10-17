@@ -30,6 +30,7 @@ import com.strobingn.bowtune.ui.screens.sessions.BrandWizardScreen
 import com.strobingn.bowtune.ui.screens.sessions.LiftVerticalTuneSessionScreen
 import com.strobingn.bowtune.ui.screens.sessions.SessionsScreen
 import com.strobingn.bowtune.ui.screens.vision.ShotVisionScreen
+import com.strobingn.bowtune.ui.screens.vision.VisionMode
 
 @Composable
 fun BowTuneBottomBar(navController: NavHostController) {
@@ -112,6 +113,12 @@ fun BowTuneNavHost(
                 },
                 onOpenAdvancedLibrary = {
                     navController.navigate(AdvancedTuneRoutes.LIST)
+                },
+                onOpenGroupCamera = {
+                    navController.navigate(VisionRoutes.withMode(VisionMode.ARROW_GROUP.name)) {
+                        popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                        launchSingleTop = true
+                    }
                 }
             )
         }
@@ -141,6 +148,12 @@ fun BowTuneNavHost(
                 onOpenAdvanced = { id -> navController.navigate(AdvancedTuneRoutes.detail(id)) },
                 onOpenAdvancedLibrary = {
                     navController.navigate(AdvancedTuneRoutes.LIST)
+                },
+                onOpenGroupCamera = {
+                    navController.navigate(VisionRoutes.withMode(VisionMode.ARROW_GROUP.name)) {
+                        popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                        launchSingleTop = true
+                    }
                 }
             )
         }
@@ -158,8 +171,20 @@ fun BowTuneNavHost(
                 onBack = { navController.popBackStack() }
             )
         }
-        composable(TopLevelDestination.Vision.route) {
+        composable(
+            route = VisionRoutes.WITH_MODE,
+            arguments = listOf(
+                navArgument("mode") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                }
+            )
+        ) { entry ->
+            val modeArg = entry.arguments?.getString("mode")
+            val initialMode = VisionMode.entries.firstOrNull { it.name == modeArg } ?: VisionMode.POSE_FORM
             ShotVisionScreen(
+                initialMode = initialMode,
                 onOpenPaperTear = { tear: TearType ->
                     navController.navigate(PaperTearRoutes.withTear(tear.name)) {
                         popUpTo(navController.graph.findStartDestination().id) {

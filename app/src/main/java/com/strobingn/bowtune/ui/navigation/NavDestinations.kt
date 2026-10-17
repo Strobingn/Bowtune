@@ -54,3 +54,9 @@ object PaperTearRoutes {
     const val WITH_TEAR = "paper_tear?tear={tear}"
     fun withTear(tear: String) = "paper_tear?tear=$tear"
 }
+
+object VisionRoutes {
+    const val ROOT = "vision"
+    const val WITH_MODE = "vision?mode={mode}"
+    fun withMode(mode: String) = "vision?mode=$mode"
+}
