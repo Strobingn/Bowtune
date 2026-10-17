@@ -56,9 +56,13 @@ import com.strobingn.bowtune.data.CoachingLevel
 import com.strobingn.bowtune.data.ReportBuilder
 import com.strobingn.bowtune.data.TearType
 import com.strobingn.bowtune.data.toDoubleOrNullLenient
+import com.strobingn.bowtune.ui.common.ArrowBalanceSketch
+import com.strobingn.bowtune.ui.common.EnergyGauge
+import com.strobingn.bowtune.ui.common.FocGauge
 import com.strobingn.bowtune.ui.common.HintCard
 import com.strobingn.bowtune.ui.common.LabeledField
 import com.strobingn.bowtune.ui.common.SectionLabel
+import com.strobingn.bowtune.ui.common.SpineRuler
 import com.strobingn.bowtune.ui.common.formatDay
 import com.strobingn.bowtune.ui.common.formatWhen
 import com.strobingn.bowtune.ui.common.shareText
@@ -75,7 +79,8 @@ fun HomeScreen(
     onOpenGear: () -> Unit,
     onOpenChecklist: () -> Unit,
     onOpenSessions: () -> Unit,
-    onOpenAdvancedLibrary: () -> Unit = {}
+    onOpenAdvancedLibrary: () -> Unit = {},
+    onOpenGroupMeasure: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val app = context.applicationContext as BowTuneApp
@@ -219,6 +224,13 @@ fun HomeScreen(
                         body = nextDue?.let { "Next cam/tune check ${formatDay(it)}" }
                             ?: "No due date. Set one on a setup or a Service log in Gear.",
                         onClick = onOpenGear
+                    )
+                }
+                item {
+                    DashCard(
+                        title = "Measure a group",
+                        body = "Photograph the arrow group, fit a face or a ruler, tap each shaft, and record the center-to-center size.",
+                        onClick = onOpenGroupMeasure
                     )
                 }
                 item {
@@ -412,29 +424,45 @@ private fun FocTool(sample: com.strobingn.bowtune.data.ArrowShaft?) {
     )
     LabeledField(length, { length = it }, "Arrow length (in)")
     LabeledField(balance, { balance = it }, "Balance point from nock (in)")
-    LabeledField(shaft, { shaft = it }, "Shaft grains (or GPI × length)")
+    LabeledField(shaft, { shaft = it }, "Shaft grains (GPI × length)")
     LabeledField(point, { point = it }, "Point (gr)")
     LabeledField(insert, { insert = it }, "Insert (gr)")
     LabeledField(nock, { nock = it }, "Nock (gr)")
     LabeledField(vane, { vane = it }, "Vanes total (gr)")
     LabeledField(wrap, { wrap = it }, "Wrap (gr)")
+    ArrowBalanceSketch(length.toDoubleOrNullLenient(), balance.toDoubleOrNullLenient())
+    FocGauge(result.focPercent)
     HintCard(result.note)
 }
 
 @Composable
 private fun SpineTool(defaultDw: String, defaultLen: String) {
     var dw by remember { mutableStateOf(defaultDw) }
-    var length by remember { mutableStateOf(defaultLen) }
+    var length by remember { mutableStateOf("") }
     var point by remember { mutableStateOf("100") }
+    var insert by remember { mutableStateOf("") }
+    var speed by remember { mutableStateOf("") }
     val result = Calculators.spine(
         dw.toDoubleOrNullLenient(),
         length.toDoubleOrNullLenient(),
-        point.toDoubleOrNullLenient()
+        point.toDoubleOrNullLenient(),
+        insert.toDoubleOrNullLenient(),
+        speed.toDoubleOrNullLenient()
     )
-    LabeledField(dw, { dw = it }, "Draw weight (lb)")
-    LabeledField(length, { length = it }, "Arrow length (in)")
+    LabeledField(dw, { dw = it }, "Peak draw weight (lb)")
+    LabeledField(length, { length = it }, "Cut length, nock throat to shaft end (in)")
+    if (defaultLen.isNotBlank()) {
+        Text(
+            "This bow's draw length is $defaultLen in. That is not the cut length — measure the shaft.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
     LabeledField(point, { point = it }, "Point weight (gr)")
+    LabeledField(insert, { insert = it }, "Insert / outsert (gr, optional)")
+    LabeledField(speed, { speed = it }, "ATA / IBO speed (fps, optional)")
     Text(result.suggestedRange, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+    SpineRuler(result.weaker, result.stiffer)
     result.notes.forEach { Text("• $it", style = MaterialTheme.typography.bodySmall) }
 }
 
@@ -445,5 +473,6 @@ private fun EnergyTool(defaultSpeed: String) {
     val result = Calculators.energy(grains.toDoubleOrNullLenient(), fps.toDoubleOrNullLenient())
     LabeledField(grains, { grains = it }, "Finished arrow (gr)")
     LabeledField(fps, { fps = it }, "Speed (fps)")
+    EnergyGauge(result.kineticFtLbs)
     HintCard(result.note)
 }

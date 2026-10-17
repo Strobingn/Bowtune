@@ -13,7 +13,7 @@ Built with **Kotlin**, **Jetpack Compose (Material 3)**, **Navigation**, **DataS
 4. Copy `local.properties.example` → `local.properties` only if needed. Android Studio normally creates `local.properties` with your `sdk.dir`. **Do not commit `local.properties`** (it can contain machine-specific paths).
 5. Select an emulator or device, then click **Run** on the `app` configuration (`com.strobingn.bowtune`).
 
-Minimum SDK: 26 · Target / compile SDK: 35 · Version: **1.3.0** (versionCode 5)
+Minimum SDK: 26 · Target / compile SDK: 35 · Version: **1.4.0** (versionCode 6)
 
 ## Branding / theme
 
@@ -23,12 +23,12 @@ UI is **grayscale only** (blacks, greys, whites). `BowTuneTheme` sets **`dynamic
 
 | Tab | What it does |
 |-----|----------------|
-| **Home** | Active bow, last tear, checklist %, next due, FOC/spine/KE tools, backup, report, coaching + accessibility. |
+| **Home** | Active bow, last tear, checklist %, next due, visual FOC/spine/KE tools, group measure shortcut, backup, report, coaching + accessibility. |
 | **Paper Tear** | Tap-zone diagram + Easton CR left/right/4–6 ft steps, TTS, tear history. |
 | **Checklist** | Templates (full / paper / hunting / indoor) with % complete and per-template reset. |
 | **Gear** | Multi-bow profiles (Set active), arrows + FOC, adjustment logbook, side-by-side compare, cam/cable service dates. |
 | **Sessions** | Group / paper / bare / walk-back / broadhead logs with conditions, shareable report, brand short wizards + LIFT 29.5. |
-| **Vision** | On-device camera + ML Kit pose landmarks. **Form** mode: live skeleton overlay, freeze-frame coaching heuristics (shoulder tilt, elbow angles, head/lean), save notes to a `TuneSession`. **Paper tear** mode: capture a still, manually confirm tear type (assist only — no trained tear CV), jump into Paper Tear guidance. |
+| **Vision** | On-device camera + ML Kit pose landmarks. **Form** mode: live skeleton overlay, freeze-frame coaching heuristics (shoulder tilt, elbow angles, head/lean), save notes to a `TuneSession`. **Tear** mode: capture a still, manually confirm tear type (assist only — no trained tear CV), jump into Paper Tear guidance. **Group** mode: capture or pick a photo, fit a known face or ruler, tap arrow centers, and record center-to-center group size. |
 | **Guides** | **Advanced Tuning library** (bare shaft walkthroughs, fletched, nock clocking, walk-back, French, planing, broadheads, CR paper depth, torque, yoke/Limb Shift, tiller/timing, dynamic spine) plus Mathews Limb Shift, PSE EZ.220, Hoyt XTS, Bowtech DeadLock, Elite S.E.T. |
 
 ## Shot Vision notes
@@ -37,6 +37,11 @@ UI is **grayscale only** (blacks, greys, whites). `BowTuneTheme` sets **`dynamic
 - Pose works best with decent lighting and a **side-ish / 3⁄4** angle at full-draw-ish stance.
 - Coaching tips are **heuristics**, not a coach — low-confidence states are called out in the UI.
 - Paper-tear photo flow is labeled **assist**; you confirm the tear type yourself.
+- **Group** mode does not guess arrow positions. You fit the scale (40/60/80/122 cm face, a 12 in reference, or a custom length) and tap each shaft center. Group size is the longest center-to-center distance. The smallest circle around the centers is drawn only as a picture — it can be wider than the group size. MOA uses the tangent definition (about 1.047 in at 100 yd). A vertical or horizontal string is described as form, nock, or sight, not as a spine call. The aim mark, if you tap one, moves the **sight** toward the group and does not tell you to move the rest.
+
+## Calculators
+
+FOC uses the AMO formula from the nock throat: `(balance − length/2) / length × 100`. Spine is the Easton hunting chart 301055-A for a compound with a release (point weight ±3 lb per 25 gr from 100 gr, insert/outsert over 25 gr, ATA speed bands). KE is `grains × fps² / 450240`. Momentum is `grains × fps / 225218`. High FOC is described as more stable and often less wind drift, with a weaker dynamic spine — not as “more wind drift.” Deer-class KE starts at 40 ft-lb in the wording.
 
 ## Download a debug APK (GitHub Actions)
 

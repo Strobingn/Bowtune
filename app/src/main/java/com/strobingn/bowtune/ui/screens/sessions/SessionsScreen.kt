@@ -70,7 +70,8 @@ fun SessionsScreen(
     onOpenLiftVerticalTune: () -> Unit = {},
     onOpenWizard: (String) -> Unit = {},
     onOpenAdvanced: (String) -> Unit = {},
-    onOpenAdvancedLibrary: () -> Unit = {}
+    onOpenAdvancedLibrary: () -> Unit = {},
+    onMeasureGroup: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val app = context.applicationContext as BowTuneApp
@@ -124,6 +125,13 @@ fun SessionsScreen(
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
+            item {
+                WizardCard(
+                    title = "Measure a group with the camera",
+                    subtitle = "Photograph the arrows, fit a face or ruler, and record center-to-center group size.",
+                    onClick = onMeasureGroup
+                )
+            }
             item {
                 WizardCard(
                     title = "Advanced Tuning library",
@@ -223,6 +231,10 @@ fun SessionsScreen(
                 showEditor = false
                 onOpenAdvanced(id)
             },
+            onMeasureGroup = {
+                showEditor = false
+                onMeasureGroup()
+            },
             onSave = { session ->
                 scope.launch {
                     dao.upsert(session)
@@ -258,6 +270,7 @@ private fun SessionEditorDialog(
     defaultSetup: String,
     onDismiss: () -> Unit,
     onOpenAdvanced: (String) -> Unit = {},
+    onMeasureGroup: () -> Unit = {},
     onSave: (TuneSession) -> Unit
 ) {
     var kind by remember { mutableStateOf(SessionKind.GROUP) }
@@ -352,6 +365,9 @@ private fun SessionEditorDialog(
                     }
                     SessionKind.PAPER -> TextButton(onClick = { onOpenAdvanced(AdvancedTuneIds.PAPER) }) {
                         Text("Open advanced paper (CR)")
+                    }
+                    SessionKind.GROUP -> TextButton(onClick = onMeasureGroup) {
+                        Text("Measure this group with the camera")
                     }
                     else -> { }
                 }

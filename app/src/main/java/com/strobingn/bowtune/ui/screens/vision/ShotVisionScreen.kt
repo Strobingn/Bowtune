@@ -97,12 +97,13 @@ import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.launch
 
-private enum class VisionMode { FORM, PAPER_TEAR }
+private enum class VisionMode { FORM, PAPER_TEAR, GROUP }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun ShotVisionScreen(
-    onOpenPaperTear: (TearType) -> Unit = {}
+    onOpenPaperTear: (TearType) -> Unit = {},
+    startOnGroup: Boolean = false
 ) {
     val context = LocalContext.current
     val dark = isSystemInDarkTheme()
@@ -126,7 +127,7 @@ fun ShotVisionScreen(
         ActivityResultContracts.RequestPermission()
     ) { granted -> hasCamPermission = granted }
 
-    var mode by remember { mutableStateOf(VisionMode.FORM) }
+    var mode by remember { mutableStateOf(if (startOnGroup) VisionMode.GROUP else VisionMode.FORM) }
     var livePose by remember { mutableStateOf<Pose?>(null) }
     var imageWidth by remember { mutableStateOf(1) }
     var imageHeight by remember { mutableStateOf(1) }
@@ -160,7 +161,7 @@ fun ShotVisionScreen(
                         frozenAnalysis = null
                         savedMsg = null
                     },
-                    shape = SegmentedButtonDefaults.itemShape(0, 2)
+                    shape = SegmentedButtonDefaults.itemShape(0, 3)
                 ) { Text("Form") }
                 SegmentedButton(
                     selected = mode == VisionMode.PAPER_TEAR,
@@ -169,15 +170,39 @@ fun ShotVisionScreen(
                         frozenAnalysis = null
                         savedMsg = null
                     },
-                    shape = SegmentedButtonDefaults.itemShape(1, 2)
-                ) { Text("Paper tear") }
+                    shape = SegmentedButtonDefaults.itemShape(1, 3)
+                ) { Text("Tear") }
+                SegmentedButton(
+                    selected = mode == VisionMode.GROUP,
+                    onClick = {
+                        mode = VisionMode.GROUP
+                        frozenAnalysis = null
+                        paperCaptured = false
+                        confirmedTear = null
+                        savedMsg = null
+                    },
+                    shape = SegmentedButtonDefaults.itemShape(2, 3)
+                ) { Text("Group") }
             }
 
             Spacer(Modifier.height(8.dp))
 
-            if (!hasCamPermission) {
+            if (!hasCamPermission && mode != VisionMode.GROUP) {
                 PermissionDeniedCard(
                     onRequest = { permissionLauncher.launch(Manifest.permission.CAMERA) }
+                )
+                return@Column
+            }
+
+            if (mode == VisionMode.GROUP) {
+                GroupCaptureMode(
+                    hasCamera = hasCamPermission,
+                    onRequestCamera = { permissionLauncher.launch(Manifest.permission.CAMERA) },
+                    setupName = activeName,
+                    onSave = { session ->
+                        scope.launch { dao.upsert(session) }
+                    },
+                    modifier = Modifier.weight(1f)
                 )
                 return@Column
             }
@@ -227,6 +252,7 @@ fun ShotVisionScreen(
             Spacer(Modifier.height(8.dp))
 
             when (mode) {
+                VisionMode.GROUP -> Unit
                 VisionMode.FORM -> FormBottomPanel(
                     frozen = frozenAnalysis,
                     liveReady = livePose != null,
@@ -367,7 +393,7 @@ private fun PermissionDeniedCard(onRequest: () -> Unit) {
                 Text("Camera permission needed", fontWeight = FontWeight.SemiBold)
             }
             Text(
-                "Shot Vision uses the camera on-device for pose landmarks and paper-tear assist photos. Nothing is uploaded.",
+                "Shot Vision uses the camera on-device for pose landmarks, paper-tear photos, and arrow-group measurement. Nothing is uploaded.",
                 style = MaterialTheme.typography.bodyMedium
             )
             Button(onClick = onRequest) { Text("Grant camera access") }
@@ -541,7 +567,7 @@ private fun PaperTearBottomPanel(
 }
 
 @Composable
-private fun CameraPosePreview(
+internal fun CameraPosePreview(
     enablePose: Boolean,
     onPose: (Pose, Int, Int) -> Unit,
     onImageCaptureReady: (ImageCapture) -> Unit,
@@ -583,6 +609,8 @@ private fun CameraPosePreview(
                 val capture = ImageCapture.Builder()
                     .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
                     .build()
+                capture.targetRotation = previewView.display?.rotation
+                    ?: android.view.Surface.ROTATION_0
                 onImageCaptureReady(capture)
 
                 val analysis = ImageAnalysis.Builder()
