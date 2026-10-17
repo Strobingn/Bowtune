@@ -133,6 +133,7 @@ object BackupManager {
         .put("windNote", windNote)
         .put("tempNote", tempNote)
         .put("tearType", tearType)
+        .put("metricsJson", metricsJson)
 
     private fun JSONObject.toTuneSession() = TuneSession(
         id = optLong("id"),
@@ -145,7 +146,8 @@ object BackupManager {
         indoorOutdoor = optString("indoorOutdoor"),
         windNote = optString("windNote"),
         tempNote = optString("tempNote"),
-        tearType = optString("tearType")
+        tearType = optString("tearType"),
+        metricsJson = optString("metricsJson").ifBlank { "{}" }
     )
 
     private fun GuidedTuneSession.toJson() = JSONObject()
@@ -225,6 +227,7 @@ object BackupManager {
         .put("setupName", setupName)
         .put("distanceFt", distanceFt)
         .put("notes", notes)
+        .put("magnitudeIn", magnitudeIn ?: JSONObject.NULL)
 
     private fun JSONObject.toPaperTear() = PaperTearLog(
         id = optLong("id"),
@@ -232,7 +235,12 @@ object BackupManager {
         tearType = optString("tearType"),
         setupName = optString("setupName"),
         distanceFt = optString("distanceFt"),
-        notes = optString("notes")
+        notes = optString("notes"),
+        magnitudeIn = if (has("magnitudeIn") && !isNull("magnitudeIn")) {
+            optDouble("magnitudeIn").takeIf { it.isFinite() }
+        } else {
+            null
+        }
     )
 
     private fun AdjustmentLog.toJson() = JSONObject()

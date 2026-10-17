@@ -10,7 +10,11 @@ data class FocResult(
 
 data class SpineResult(
     val suggestedRange: String,
-    val notes: List<String>
+    val notes: List<String>,
+    /** Weaker (higher number) end of the band; null when inputs are out of range. */
+    val weakSpine: Int? = null,
+    /** Stiffer (lower number) end of the band. */
+    val stiffSpine: Int? = null
 )
 
 data class EnergyResult(
@@ -131,7 +135,9 @@ object Calculators {
 
         return SpineResult(
             suggestedRange = "$weak–$stiff spine (weaker→stiffer)",
-            notes = notes
+            notes = notes,
+            weakSpine = weak,
+            stiffSpine = stiff
         )
     }
 

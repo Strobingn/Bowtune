@@ -10,6 +10,7 @@ import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
+import androidx.camera.core.ExperimentalGetImage
 import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
@@ -114,6 +115,7 @@ fun ShotVisionScreen(
     val activeId by app.preferences.activeSetupId.collectAsStateWithLifecycle(0L)
     val coaching by app.preferences.coachingLevel.collectAsStateWithLifecycle(CoachingLevel.STANDARD)
     val hapticOn by app.preferences.hapticEnabled.collectAsStateWithLifecycle(true)
+    val hapticStrength by app.preferences.hapticStrength.collectAsStateWithLifecycle(2)
     val activeName = setups.firstOrNull { it.id == activeId }?.name.orEmpty()
 
     var hasCamPermission by remember {
@@ -237,9 +239,9 @@ fun ShotVisionScreen(
                         if (pose != null) {
                             val result = FormAnalysis.analyze(pose, level = coaching)
                             frozenAnalysis = result
-                            context.tickHaptic(hapticOn)
+                            context.tickHaptic(hapticOn, hapticStrength)
                             if (result.tips.any { it.severity == CoachingTip.Severity.CAUTION }) {
-                                context.tickHaptic(hapticOn)
+                                context.tickHaptic(hapticOn, hapticStrength)
                             }
                             scope.launch {
                                 val notes = buildString {
@@ -327,7 +329,7 @@ fun ShotVisionScreen(
                     onSelect = { suggestedTear = it },
                     onConfirm = { tear ->
                         confirmedTear = tear
-                        context.tickHaptic(hapticOn)
+                        context.tickHaptic(hapticOn, hapticStrength)
                         scope.launch {
                             tearDao.upsert(
                                 PaperTearLog(
@@ -619,6 +621,7 @@ private fun CameraPosePreview(
     )
 }
 
+@androidx.annotation.OptIn(markerClass = [ExperimentalGetImage::class])
 private fun processPose(
     imageProxy: ImageProxy,
     detector: com.google.mlkit.vision.pose.PoseDetector,

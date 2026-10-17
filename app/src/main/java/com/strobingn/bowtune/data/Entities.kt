@@ -52,7 +52,9 @@ data class PaperTearLog(
     val tearType: String,
     val setupName: String = "",
     val distanceFt: String = "4-6",
-    val notes: String = ""
+    val notes: String = "",
+    /** Approximate tear length in inches (point hole to nock end). Null for pre-1.4 logs. */
+    val magnitudeIn: Double? = null
 )
 
 @Entity(tableName = "adjustment_logs")
