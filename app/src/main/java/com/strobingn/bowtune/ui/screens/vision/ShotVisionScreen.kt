@@ -39,10 +39,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Undo
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Save
-import androidx.compose.material.icons.filled.Undo
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -708,7 +708,7 @@ private fun GroupBottomPanel(
                     enabled = referencePointCount + arrowCount > 0,
                     modifier = Modifier.weight(1f)
                 ) {
-                    Icon(Icons.Filled.Undo, contentDescription = null)
+                    Icon(Icons.AutoMirrored.Filled.Undo, contentDescription = null)
                     Text(" Undo")
                 }
                 OutlinedButton(onClick = onRetake, modifier = Modifier.weight(1f)) {

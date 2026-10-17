@@ -21,7 +21,7 @@ class CalculatorsTest {
 
         assertEquals(12.0689, requireNotNull(result.focPercent), 0.0001)
         assertEquals(422.0, requireNotNull(result.totalGrains), 0.0001)
-        assertTrue(result.note.contains("Typical hunting"))
+        assertTrue(result.note.contains("Common hunting"))
     }
 
     @Test
