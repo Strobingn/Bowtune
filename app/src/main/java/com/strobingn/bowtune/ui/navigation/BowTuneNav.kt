@@ -181,10 +181,8 @@ fun BowTuneNavHost(
                 }
             )
         ) { entry ->
-            val modeArg = entry.arguments?.getString("mode")
-            val initialMode = VisionMode.entries.firstOrNull { it.name == modeArg } ?: VisionMode.POSE_FORM
             ShotVisionScreen(
-                initialMode = initialMode,
+                initialMode = entry.arguments?.getString("mode"),
                 onOpenPaperTear = { tear: TearType ->
                     navController.navigate(PaperTearRoutes.withTear(tear.name)) {
                         popUpTo(navController.graph.findStartDestination().id) {

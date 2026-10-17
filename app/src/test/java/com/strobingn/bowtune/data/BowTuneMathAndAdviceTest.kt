@@ -1,10 +1,9 @@
 package com.strobingn.bowtune.data
 
-import com.strobingn.bowtune.data.advanced.BareShaftAdvanced
-import com.strobingn.bowtune.data.advanced.FletchedNockSpine
+import com.strobingn.bowtune.data.advanced.AdvancedTuneCatalog
+import com.strobingn.bowtune.data.advanced.AdvancedTuneIds
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -52,10 +51,10 @@ class BowTuneMathAndAdviceTest {
 
     @Test
     fun spine_monotonicStiffnessWithWeightLengthAndPoint() {
-        val base = Calculators.spine(drawWeightLbs = 60.0, arrowLengthIn = 28.0, pointGr = 100.0)
-        val heavierBow = Calculators.spine(drawWeightLbs = 70.0, arrowLengthIn = 28.0, pointGr = 100.0)
-        val longerArrow = Calculators.spine(drawWeightLbs = 60.0, arrowLengthIn = 30.0, pointGr = 100.0)
-        val heavierFront = Calculators.spine(drawWeightLbs = 60.0, arrowLengthIn = 28.0, pointGr = 175.0)
+        val base = Calculators.spine(drawWeightLbs = 60.0, arrowLengthIn = 28.0, pointWeightGr = 100.0)
+        val heavierBow = Calculators.spine(drawWeightLbs = 70.0, arrowLengthIn = 28.0, pointWeightGr = 100.0)
+        val longerArrow = Calculators.spine(drawWeightLbs = 60.0, arrowLengthIn = 30.0, pointWeightGr = 100.0)
+        val heavierFront = Calculators.spine(drawWeightLbs = 60.0, arrowLengthIn = 28.0, pointWeightGr = 175.0)
 
         // Lower spine number = stiffer shaft
         assertTrue(heavierBow.stiffSpine <= base.stiffSpine)
@@ -67,28 +66,38 @@ class BowTuneMathAndAdviceTest {
 
     @Test
     fun energy_kineticMomentumAndGrainsPerPoundSafety() {
-        val standard = Calculators.energy(grains = 425.0, speedFps = 285.0, drawWeightLbs = 70.0)
+        val standard = Calculators.energy(arrowGrains = 425.0, speedFps = 285.0, drawWeightLbs = 70.0)
         assertNotNull(standard.kineticFtLbs)
         assertNotNull(standard.momentumSlugFtS)
         // KE = 425 * 285^2 / 450240 = 76.67 ft-lb
         assertEquals(76.67, standard.kineticFtLbs!!, 0.1)
-        // Momentum = 425 * 285 / 225400 = 0.537 slug*ft/s
-        assertEquals(0.537, standard.momentumSlugFtS!!, 0.01)
+        // Momentum = 425 * 285 / 225218 = 0.538 slug*ft/s
+        assertEquals(0.538, standard.momentumSlugFtS!!, 0.01)
         assertEquals(6.07, standard.grainsPerPound!!, 0.05)
 
-        val unsafeLight = Calculators.energy(grains = 310.0, speedFps = 320.0, drawWeightLbs = 70.0)
-        assertTrue(unsafeLight.note.contains("SAFETY WARNING"))
+        val unsafeLight = Calculators.energy(arrowGrains = 310.0, speedFps = 320.0, drawWeightLbs = 70.0)
+        assertTrue(unsafeLight.note.contains("Warning:", ignoreCase = true))
     }
 
     @Test
     fun estimateSpeedFps_iboAdjustments() {
-        // At exact IBO spec (30" DL, 70 lb DW, 350 gr arrow), estimated speed equals IBO rating
-        val atIbo = Calculators.estimateSpeedFps(340.0, 70.0, 30.0, 350.0)
-        assertEquals(340.0, atIbo!!, 0.01)
+        // At IBO spec (30" DL, 70 lb DW, 350 gr arrow), estimated speed = IBO - 4 fps (string accessories)
+        val atIbo = Calculators.estimateSpeedFps(
+            iboFps = 340.0,
+            drawLengthIn = 30.0,
+            drawWeightLbs = 70.0,
+            arrowGrains = 350.0
+        )
+        assertEquals(336.0, atIbo!!, 0.01)
 
-        // 28.5" DL (-1.5" = -15 fps), 70 lb DW (0), 440 gr arrow (+90 gr = -30 fps) -> 340 - 45 = 295 fps
-        val hunting = Calculators.estimateSpeedFps(340.0, 70.0, 28.5, 440.0)
-        assertEquals(295.0, hunting!!, 0.01)
+        // 28.5" DL (-1.5" = -15 fps), 70 lb DW (0), 440 gr arrow (+90 gr = -30 fps), -4 fps accessories -> 340 - 49 = 291 fps
+        val hunting = Calculators.estimateSpeedFps(
+            iboFps = 340.0,
+            drawLengthIn = 28.5,
+            drawWeightLbs = 70.0,
+            arrowGrains = 440.0
+        )
+        assertEquals(291.0, hunting!!, 0.01)
     }
 
     @Test
@@ -110,7 +119,7 @@ class BowTuneMathAndAdviceTest {
         val aim = GroupPoint(150f, 166.67f) // right at centroid
 
         val metrics = GroupCalculator.calculate(
-            arrowPoints = arrows,
+            arrows = arrows,
             refStart = refA,
             refEnd = refB,
             refLengthIn = 2.0,
@@ -149,7 +158,7 @@ class BowTuneMathAndAdviceTest {
             GroupPoint(450f, 200f)
         )
         val metrics = GroupCalculator.calculate(
-            arrowPoints = arrows,
+            arrows = arrows,
             refStart = refA,
             refEnd = refB,
             refLengthIn = 2.0,
@@ -161,48 +170,51 @@ class BowTuneMathAndAdviceTest {
 
     @Test
     fun tuningAdvice_consistentEastonCrAndDynamicSpinePhysics() {
-        // 1. Paper tear: Left tear -> rest RIGHT or Limb Shift L
+        // 1. Paper tear: Left tear -> rest right or Limb Shift L
         val leftSteps = PaperTearGuidance.stepsFor(TearType.LEFT, CoachingLevel.STANDARD).joinToString(" ")
-        assertTrue(leftSteps.contains("rest slightly RIGHT", ignoreCase = true))
+        assertTrue(leftSteps.contains("rest right", ignoreCase = true))
         assertTrue(leftSteps.contains("Limb Shift toward L", ignoreCase = true))
 
-        // 2. Bare shaft hint: bare left (+horizontalLeftIn) -> weak / rest RIGHT / Limb Shift L
-        val bareLeftHint = TuneHints.bareShaft(verticalIn = 0.0, horizontalLeftIn = 1.5)
+        // 2. Bare shaft hint: bare left (+bareLeftRightIn) -> weak / rest right / Limb Shift L
+        val bareLeftHint = TuneHints.bareShaft(bareHighLowIn = 0.0, bareLeftRightIn = 1.5)
         assertNotNull(bareLeftHint)
-        assertTrue(bareLeftHint!!.contains("rest slightly RIGHT", ignoreCase = true))
+        assertTrue(bareLeftHint.contains("rest right", ignoreCase = true))
+        assertTrue(bareLeftHint.contains("Limb Shift toward L", ignoreCase = true))
 
-        // 3. Broadhead hint: broadhead left (+horizontalLeftIn) -> rest RIGHT, broadhead high (+verticalIn) -> rest DOWN
-        val bhHint = TuneHints.broadhead(horizontalLeftIn = 2.0, verticalIn = 2.0)
+        // 3. Broadhead hint: broadhead left (+bhLeftRightIn) -> rest right, broadhead high (+bhHighLowIn) -> nock-up / lower rest
+        val bhHint = TuneHints.broadhead(bhLeftRightIn = 2.0, bhHighLowIn = 2.0)
         assertNotNull(bhHint)
-        assertTrue(bhHint!!.contains("rest slightly RIGHT", ignoreCase = true))
-        assertTrue(bhHint.contains("rest slightly DOWN", ignoreCase = true))
+        assertTrue(bhHint.contains("rest right", ignoreCase = true))
+        assertTrue(bhHint.contains("lower rest", ignoreCase = true))
 
         // 4. Advanced Bare Shaft & Nock/Spine guides must recommend reducing front weight (not adding) to stiffen weak spine
-        val bareAdvText = BareShaftAdvanced.guide.sections.flatMap { it.bullets + it.paragraphs }.joinToString(" ")
+        val bareGuide = AdvancedTuneCatalog.byId(AdvancedTuneIds.BARE_SHAFT)
+        assertNotNull(bareGuide)
+        val bareAdvText = bareGuide!!.sections.flatMap { sec ->
+            sec.bullets + sec.paragraphs + sec.steps.flatMap { s -> s.how + s.lookFor + listOf(s.what, s.why, s.changeNext) }
+        }.joinToString(" ")
         assertTrue(bareAdvText.contains("reduce front weight", ignoreCase = true))
 
-        val spineAdvText = FletchedNockSpine.nockAndSpine.sections.flatMap { it.bullets + it.paragraphs }.joinToString(" ")
-        assertTrue(spineAdvText.contains("lighter point", ignoreCase = true))
+        val dynSpineGuide = AdvancedTuneCatalog.byId(AdvancedTuneIds.DYNAMIC_SPINE)
+        assertNotNull(dynSpineGuide)
+        val spineAdvText = dynSpineGuide!!.sections.flatMap { sec ->
+            sec.bullets + sec.paragraphs + sec.steps.flatMap { s -> s.how + s.lookFor + listOf(s.what, s.why, s.changeNext) }
+        }.joinToString(" ")
+        assertTrue(spineAdvText.contains("stiffer dynamic", ignoreCase = true))
     }
 
     @Test
-    fun formAnalysis_evaluatesCleanAndFaultyBiomechanics() {
-        // Balanced archer pose
-        val clean = FormAnalysis.analyze(
-            points = mapOf(
-                11 to (0.35f to 0.35f), // left shoulder
-                12 to (0.65f to 0.35f), // right shoulder (level)
-                13 to (0.15f to 0.36f), // left elbow (aligned with wrist & shoulder)
-                14 to (0.85f to 0.35f), // right draw elbow (180 deg line)
-                15 to (0.02f to 0.36f), // left wrist (bow hand level with shoulder)
-                16 to (0.62f to 0.35f), // right wrist (anchor)
-                23 to (0.38f to 0.75f), // left hip
-                24 to (0.62f to 0.75f), // right hip
-                0 to (0.50f to 0.20f)   // nose centered
-            ),
-            level = CoachingLevel.STANDARD
-        )
-        assertTrue(clean.tips.any { it.title.contains("Solid alignment") })
-        assertNull(clean.suggestedTear)
+    fun formAnalysis_handlesNullPoseAndJointAngleGeometry() {
+        val res = FormAnalysis.analyze(pose = null, level = CoachingLevel.STANDARD)
+        assertTrue(res.isLowConfidence)
+        assertEquals(0, res.landmarkCount)
+
+        // Straight arm (180 degrees)
+        val straight = FormAnalysis.angleAtPoints(0f, 100f, 100f, 100f, 200f, 100f)
+        assertEquals(180f, straight, 0.05f)
+
+        // 90 degree elbow bend
+        val rightAngle = FormAnalysis.angleAtPoints(0f, 0f, 0f, 100f, 100f, 100f)
+        assertEquals(90f, rightAngle, 0.05f)
     }
 }

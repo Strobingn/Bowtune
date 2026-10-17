@@ -43,17 +43,17 @@ data class FormAnalysisResult(
 object FormAnalysis {
 
     fun analyze(
-        pose: Pose,
+        pose: Pose?,
         assumeRightHanded: Boolean = true,
         level: CoachingLevel = CoachingLevel.STANDARD
     ): FormAnalysisResult {
-        val landmarks = pose.allPoseLandmarks.filter { it.inFrameLikelihood >= 0.3f }
+        val landmarks = pose?.allPoseLandmarks?.filter { it.inFrameLikelihood >= 0.3f }.orEmpty()
         val avgLike = if (landmarks.isEmpty()) 0f else landmarks.map { it.inFrameLikelihood }.average().toFloat()
 
         val tips = mutableListOf<CoachingTip>()
         var confidenceNote: String? = null
 
-        if (landmarks.size < 8 || avgLike < 0.55f) {
+        if (pose == null || landmarks.size < 8 || avgLike < 0.55f) {
             confidenceNote =
                 "Low pose confidence (${landmarks.size} landmarks, ${(avgLike * 100).roundToInt()}% avg). " +
                     "Use decent lighting and a side-ish angle at full draw for better tips."
@@ -291,11 +291,21 @@ object FormAnalysis {
     private fun ok(lm: PoseLandmark?): Boolean =
         lm != null && lm.inFrameLikelihood >= 0.4f
 
-    internal fun angleAt(a: PoseLandmark, b: PoseLandmark, c: PoseLandmark): Float {
-        val bax = a.position.x - b.position.x
-        val bay = a.position.y - b.position.y
-        val bcx = c.position.x - b.position.x
-        val bcy = c.position.y - b.position.y
+    internal fun angleAt(a: PoseLandmark, b: PoseLandmark, c: PoseLandmark): Float =
+        angleAtPoints(a.position.x, a.position.y, b.position.x, b.position.y, c.position.x, c.position.y)
+
+    internal fun angleAtPoints(
+        ax: Float,
+        ay: Float,
+        bx: Float,
+        by: Float,
+        cx: Float,
+        cy: Float
+    ): Float {
+        val bax = ax - bx
+        val bay = ay - by
+        val bcx = cx - bx
+        val bcy = cy - by
         val dot = bax * bcx + bay * bcy
         val mag = hypot(bax.toDouble(), bay.toDouble()) * hypot(bcx.toDouble(), bcy.toDouble())
         if (mag < 1e-3) return 180f

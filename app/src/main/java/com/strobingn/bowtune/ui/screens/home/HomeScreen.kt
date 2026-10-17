@@ -470,7 +470,7 @@ private fun EnergyTool(defaultSpeed: String, defaultDw: String = "") {
     var fps by remember { mutableStateOf(defaultSpeed.ifBlank { "285" }) }
     var dw by remember { mutableStateOf(defaultDw) }
     val result = Calculators.energy(
-        grains = grains.toDoubleOrNullLenient(),
+        arrowGrains = grains.toDoubleOrNullLenient(),
         speedFps = fps.toDoubleOrNullLenient(),
         drawWeightLbs = dw.toDoubleOrNullLenient()
     )

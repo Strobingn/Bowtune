@@ -118,7 +118,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-private enum class VisionMode { FORM, PAPER_TEAR, ARROW_GROUP }
+enum class VisionMode { FORM, PAPER_TEAR, ARROW_GROUP }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
