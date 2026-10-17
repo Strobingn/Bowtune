@@ -69,8 +69,7 @@ object FormAnalysis {
         if (ok(lShoulder) && ok(rShoulder)) {
             val dy = rShoulder!!.position.y - lShoulder!!.position.y
             val dx = rShoulder.position.x - lShoulder.position.x
-            val tiltDeg = Math.toDegrees(atan2(dy.toDouble(), dx.toDouble())).toFloat()
-            val absTilt = abs(tiltDeg)
+            val absTilt = FormGeometry.lineTiltDegrees(dx, dy)
             when {
                 absTilt > 18f -> tips += CoachingTip(
                     title = "Shoulder line looks tilted",
@@ -93,14 +92,16 @@ object FormAnalysis {
             val bowShoulder = if (assumeRightHanded) lShoulder else rShoulder
             val drawShoulder = if (assumeRightHanded) rShoulder else lShoulder
             val shoulderDeltaY = bowShoulder.position.y - drawShoulder.position.y
+            val shoulderSpan = hypot(dx.toDouble(), dy.toDouble()).toFloat().coerceAtLeast(1f)
+            val shoulderDeltaRatio = shoulderDeltaY / shoulderSpan
             // In image coords, smaller Y is higher on screen
-            if (shoulderDeltaY < -12f) {
+            if (shoulderDeltaRatio < -0.1f) {
                 tips += CoachingTip(
                     title = "Front shoulder may be high",
                     detail = "Bow-side shoulder sits higher than the drawing shoulder. Drop the front shoulder and push the bow hand toward the target without shrugging.",
                     severity = CoachingTip.Severity.CAUTION
                 )
-            } else if (shoulderDeltaY > 18f) {
+            } else if (shoulderDeltaRatio > 0.15f) {
                 tips += CoachingTip(
                     title = "Front shoulder looks low / collapsed",
                     detail = "Bow shoulder dropped a lot vs draw side. Avoid collapsing into the riser — maintain bone alignment through the bow arm.",
@@ -147,9 +148,9 @@ object FormAnalysis {
             val bowAngle = angleAt(bShoulder!!, bElbow!!, bWrist!!)
             when {
                 bowAngle > 175f -> tips += CoachingTip(
-                    title = "Bow arm looks hyper-extended",
-                    detail = "Nearly locked straight (~${bowAngle.roundToInt()}°). A soft elbow helps absorption and can reduce torque — avoid hyperextension into the joint.",
-                    severity = CoachingTip.Severity.CAUTION
+                    title = "Bow arm looks very straight",
+                    detail = "Nearly straight (~${bowAngle.roundToInt()}°). This can be normal; check that the elbow is comfortably aligned and not forced past its natural range.",
+                    severity = CoachingTip.Severity.INFO
                 )
                 bowAngle < 140f -> tips += CoachingTip(
                     title = "Bow arm looks bent",
@@ -170,14 +171,18 @@ object FormAnalysis {
             val midY = (lShoulder.position.y + rShoulder.position.y) / 2f
             val headOffsetX = nose!!.position.x - midX
             val headDrop = nose.position.y - midY
-            if (abs(headOffsetX) > 55f) {
+            val shoulderSpan = hypot(
+                (rShoulder.position.x - lShoulder.position.x).toDouble(),
+                (rShoulder.position.y - lShoulder.position.y).toDouble()
+            ).toFloat().coerceAtLeast(1f)
+            if (abs(headOffsetX) / shoulderSpan > 0.45f) {
                 tips += CoachingTip(
                     title = "Head seems shifted off center",
                     detail = "Nose is offset from the shoulder midline. Avoid peeking or tilting the head into the peep — settle the peep to your eye, not the other way around.",
                     severity = CoachingTip.Severity.CAUTION
                 )
             }
-            if (headDrop > 90f) {
+            if (headDrop / shoulderSpan > 0.75f) {
                 tips += CoachingTip(
                     title = "Head looks dropped",
                     detail = "Chin/head low relative to shoulders. Check peep height and whether you are collapsing at anchor.",
@@ -191,7 +196,11 @@ object FormAnalysis {
             val shoulderMidX = (lShoulder!!.position.x + rShoulder!!.position.x) / 2f
             val hipMidX = (lHip!!.position.x + rHip!!.position.x) / 2f
             val lean = shoulderMidX - hipMidX
-            if (abs(lean) > 40f) {
+            val shoulderSpan = hypot(
+                (rShoulder.position.x - lShoulder.position.x).toDouble(),
+                (rShoulder.position.y - lShoulder.position.y).toDouble()
+            ).toFloat().coerceAtLeast(1f)
+            if (abs(lean) / shoulderSpan > 0.35f) {
                 tips += CoachingTip(
                     title = "Possible lean",
                     detail = "Torso midline shifts vs hips. Common when fighting draw weight or reaching for the peep. Stand tall, weight balanced, then draw.",
@@ -242,5 +251,14 @@ object FormAnalysis {
         if (mag < 1e-3) return 180f
         val cos = (dot / mag).toFloat().coerceIn(-1f, 1f)
         return Math.toDegrees(kotlin.math.acos(cos).toDouble()).toFloat()
+    }
+}
+
+internal object FormGeometry {
+    fun lineTiltDegrees(dx: Float, dy: Float): Float {
+        if (abs(dx) < 1e-4f && abs(dy) < 1e-4f) return 0f
+        return Math.toDegrees(
+            atan2(abs(dy).toDouble(), abs(dx).toDouble())
+        ).toFloat()
     }
 }
